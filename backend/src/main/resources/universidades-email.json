@@ -1,0 +1,7 @@
+[
+    { "extension": "@upm.es", "universidad": "Universidad Politécnica de Madrid" },
+    { "extension": "@ucm.es", "universidad": "Universidad Complutense de Madrid" },
+    { "extension": "@uam.es", "universidad": "Universidad Autónoma de Madrid" },
+    { "extension": "@uc3m.es", "universidad": "Universidad Carlos III de Madrid" },
+    { "extension": "@urjc.es", "universidad": "Universidad Rey Juan Carlos" }
+  ]

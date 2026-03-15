@@ -1,0 +1,7 @@
+[
+    { "id": "MAD-2025-001", "nombre": "Ana", "apellidos": "García López" },
+    { "id": "MAD-2025-002", "nombre": "Carlos", "apellidos": "Martínez Ruiz" },
+    { "id": "MAD-2025-003", "nombre": "Laura", "apellidos": "Sánchez Pérez" },
+    { "id": "MAD-2025-004", "nombre": "Pablo", "apellidos": "Fernández Gómez" },
+    { "id": "MAD-2025-005", "nombre": "María", "apellidos": "López García" }
+  ]
