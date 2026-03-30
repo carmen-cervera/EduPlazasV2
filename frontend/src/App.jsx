@@ -7,6 +7,8 @@ import EstudianteInicio from './pages/solicitudes/EstudianteInicio'
 import CrearSolicitud from './pages/solicitudes/CrearSolicitud'
 import ExplorarGrados from './pages/solicitudes/ExplorarGrados'
 import VerSolicitud from './pages/solicitudes/VerSolicitud'
+import PublicarOferta from './pages/universidad/PublicarOferta'
+
 
 
 function App() {
@@ -21,7 +23,9 @@ function App() {
         <Route path="/estudiante/inicio" element={<EstudianteInicio />} />
         <Route path="/estudiante/solicitud" element={<CrearSolicitud />} />
         <Route path="/estudiante/grados" element={<ExplorarGrados />} />
-        <Route path="/estudiante/ver-solicitud" element={<VerSolicitud />} />     
+        <Route path="/estudiante/ver-solicitud" element={<VerSolicitud />} /> 
+        <Route path="/universidad/inicio" element={<PublicarOferta />} />  
+        <Route path="/universidad/publicar" element={<PublicarOferta />} />
       </Routes>
     </BrowserRouter>
   )

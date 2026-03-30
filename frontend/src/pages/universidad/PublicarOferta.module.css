@@ -1,0 +1,158 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  height: 100px;
+  background-color: #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #3552a5;
+}
+
+.logoImg {
+  position: absolute;
+  left: 30px;
+  height: 60px;
+  cursor: pointer;
+}
+
+.tituloHeader {
+  font-size: 2.2rem;
+  font-weight: bold;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #3552a5;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+}
+
+.userBox {
+  text-align: center;
+}
+
+.avatar {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.email {
+  color: #d9d9d9; 
+  font-weight: bold;
+  word-break: break-word;
+}
+
+.btnEnviarFormulario {
+  background-color: #3552a5; /* Fondo Azul */
+  color: white;            /* Letras Blancas */
+  border: none;
+  border-radius: 8px;
+  padding: 15px 20px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  max-width: 300px;
+  transition: background-color 0.3s;
+}
+
+.button, .primaryButton {
+  background-color: #d9d9d9;
+  color: #3552a5;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.main {
+  flex: 1;
+  padding: 40px;
+  background-color: #f0f2f5; /* Fondo suave */
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid #3552a5;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #3552a5;
+  font-size: 2rem;
+  text-decoration: underline;
+}
+
+.convocatoria {
+  color: #3552a5;
+  margin-bottom: 25px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-weight: bold;
+  color: #3552a5;
+  margin-bottom: 8px;
+  margin-top: 18px;
+}
+
+.input {
+  padding: 14px;
+  border: 2px solid #3552a5;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: white;
+  color: #444;
+}
+
+.checkboxContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #3552a5;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.footerButtons {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
