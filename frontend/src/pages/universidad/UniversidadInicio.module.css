@@ -86,7 +86,7 @@
   font-weight: bold;
 }
 
-/* MAIN CONTENT */
+
 .main {
   flex: 1;
   padding: 40px;
@@ -95,7 +95,7 @@
   align-items: center;
 }
 
-/* BANNER */
+
 .banner {
   border: 2px solid #3552a5;
   border-radius: 10px;

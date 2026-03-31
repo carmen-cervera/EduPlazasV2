@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UniversidadInicio.module.css';
 import logo from '../../assets/LogoPequeño_FondoBlanco_SinGorro.png';
 
 const UniversidadInicio = () => {
   const navigate = useNavigate();
+  const [grados, setGrados] = useState([]);
+  useEffect(() => {
+    const ofertasGuardadas = JSON.parse(localStorage.getItem('misOfertas')) || [];
+    setGrados(ofertasGuardadas);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -24,10 +29,10 @@ const UniversidadInicio = () => {
             <div className={styles.avatar}>🏛️</div>
             <p className={styles.uNombre}>Universidad Politécnica de Madrid</p>
           </div>
-          
+
           <nav className={styles.navLinks}>
-            <button 
-              className={styles.sidebarButton} 
+            <button
+              className={styles.sidebarButton}
               onClick={() => navigate('/universidad/publicar')}
             >
               Publicar oferta
@@ -58,18 +63,31 @@ const UniversidadInicio = () => {
                 </tr>
               </thead>
               <tbody>
+                { }
+                {grados.map((grado, index) => (
+                  <tr key={index}>
+                    <td>{grado.nombre}</td>
+                    <td>{grado.comunidad}</td>
+                    <td>{grado.rama}</td>
+                    <td>{grado.plazas}</td>
+                  </tr>
+                ))}
+
+                { }
                 <tr>
                   <td>Ingeniería Informática</td>
                   <td>Comunidad de Madrid</td>
-                  <td>Ingeniería</td>
+                  <td>Ingeniería y Arquitectura</td>
                   <td>150</td>
                 </tr>
                 <tr>
                   <td>Arquitectura</td>
                   <td>Comunidad de Madrid</td>
-                  <td>Ingeniería</td>
+                  <td>Ingeniería y Arquitectura</td>
                   <td>120</td>
                 </tr>
+
+
               </tbody>
             </table>
           </div>
