@@ -19,6 +19,9 @@ public class Usuario {
     private String dni;
     private String idEvau;
 
+    //Añadido por Luis (se puede modificar)
+    private Double nota;
+
     // Campos solo para UNIVERSIDAD
     private String nombreContacto;
     private String apellidosContacto;
@@ -49,4 +52,6 @@ public class Usuario {
     public void setApellidosContacto(String apellidosContacto) { this.apellidosContacto = apellidosContacto; }
     public Universidad getUniversidad() { return universidad; }
     public void setUniversidad(Universidad universidad) { this.universidad = universidad; }
+    public Double getNota() { return nota; }
+    public void setNota(Double nota) { this.nota = nota; }
 }

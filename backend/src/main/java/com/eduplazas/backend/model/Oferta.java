@@ -2,7 +2,8 @@ package com.eduplazas.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 public class Oferta {
@@ -38,4 +39,15 @@ public class Oferta {
     public void setConvocatoria(Convocatoria convocatoria) { this.convocatoria = convocatoria; }
     public List<CriterioAdmision> getCriterios() { return criterios; }
     public void setCriterios(List<CriterioAdmision> criterios) { this.criterios = criterios; }
+
+    public Usuario[] obtenerAsignaciones(List<Usuario> candidatos) {
+        if (candidatos == null || candidatos.isEmpty()) {
+            return new Usuario[0];
+        }
+        return candidatos.stream()
+            //.filter(u -> u.getNota() != null)
+            .sorted(Comparator.comparingDouble(Usuario::getNota).reversed())
+            .limit(plazas)
+            .toArray(Usuario[]::new);
+    }
 }

@@ -18,7 +18,14 @@ public class Asignacion {
     private Oferta oferta;
 
     private double notaFinal;
-    private String estado; // ASIGNADA, RECHAZADA
+    private String estado;
+
+    public Asignacion(Solicitante solicitante, Oferta oferta, double notaFinal, String estado) {
+        this.solicitante = solicitante;
+        this.oferta = oferta;
+        this.notaFinal = notaFinal;
+        this.estado = estado;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
