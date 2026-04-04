@@ -71,4 +71,9 @@ public class AsignacionService {
     public List<Asignacion> obtenerTodas() {
         return asignacionRepository.findAll();
     }
+    
+    public Optional<Asignacion> obtenerPorUsuario(Long usuarioId) {
+    return asignacionRepository.findBySolicitanteUsuarioId(usuarioId);
+    }
+
 }

@@ -4,11 +4,14 @@ import { obtenerVerSolicitud } from '../../services/solicitudService'
 import styles from './VerSolicitud.module.css'
 import logo from '../../assets/LogoPequeño_FondoAzul_SinGorro.png'
 import avatar from '../../assets/avatar.png'
+import { obtenerMiAsignacion } from '../../services/asignacionService'
+
 
 function VerSolicitud() {
   const navigate = useNavigate()
   const usuario = JSON.parse(localStorage.getItem('usuario'))
 
+  const [asignacion, setAsignacion] = useState(null)
   const [solicitud, setSolicitud] = useState(null)
   const [error, setError] = useState('')
 
@@ -21,6 +24,8 @@ function VerSolicitud() {
       setError('')
       const res = await obtenerVerSolicitud(usuario.id)
       setSolicitud(res.data)
+      const resAsignacion = await obtenerMiAsignacion(usuario.id)
+      setAsignacion(resAsignacion.data)
     } catch (err) {
       setSolicitud(null)
       setError(err.response?.data || 'No se ha podido cargar la solicitud')
@@ -113,6 +118,20 @@ function VerSolicitud() {
                     </div>
                   ))}
                 </div>
+
+                <h2 className={styles.sectionTitle}>Resultado de asignación</h2>
+                <div className={styles.resultadoBox}>
+                  {!asignacion && (
+                    <p>Tu solicitud está siendo procesada, los resultados estarán disponibles próximamente.</p>
+                  )}
+                  {asignacion && asignacion.estado === 'ASIGNADA' && (
+                    <p>Has sido admitido en el Grado en <strong>{asignacion.oferta?.grado}</strong> de la <strong>{asignacion.oferta?.universidad?.nombre}</strong>.</p>
+                  )}
+                  {asignacion && asignacion.estado !== 'ASIGNADA' && (
+                    <p>Lo sentimos, no has obtenido plaza en esta convocatoria.</p>
+                  )}
+                </div>
+
               </>
             )}
           </div>
