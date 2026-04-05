@@ -1,0 +1,154 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f6;
+}
+
+.header {
+  height: 80px;
+  background-color: #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid #ccc;
+}
+
+.logoImg {
+  position: absolute;
+  left: 20px;
+  height: 50px;
+}
+
+.tituloHeader {
+  color: #3552a5;
+  font-size: 2rem;
+  margin: 0;
+}
+
+
+.content {
+  display: flex;
+  flex: 1;
+}
+
+
+.sidebar {
+  width: 260px;
+  background-color: #3552a5;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 20px;
+  color: white;
+}
+
+.uLogoSection {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.avatar {
+  font-size: 3.5rem;
+  margin-bottom: 10px;
+}
+
+.uNombre {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.sidebarButton {
+  background-color: #d9d9d9;
+  color: #3552a5;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  margin-top: auto;
+  background: transparent;
+  color: white;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+
+.main {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+.banner {
+  border: 2px solid #3552a5;
+  border-radius: 10px;
+  padding: 15px 40px;
+  text-align: center;
+  background-color: white;
+  margin-bottom: 40px;
+  width: fit-content;
+}
+
+.bannerText {
+  color: #3552a5;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.bannerTitle {
+  color: #3552a5;
+  margin: 5px 0 0 0;
+  font-size: 1.5rem;
+}
+
+/* TABLA */
+.tableCard {
+  width: 90%;
+  max-width: 900px;
+  border: 2px solid #3552a5;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: white;
+}
+
+.tableTitle {
+  color: #3552a5;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  color: #3552a5;
+  border-bottom: 2px solid #3552a5;
+  padding: 12px;
+  text-align: left;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  color: #444;
+}
