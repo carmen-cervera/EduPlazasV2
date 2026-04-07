@@ -1,5 +1,6 @@
 package com.eduplazas.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +15,7 @@ public class NotaAsignatura {
 
     @ManyToOne
     @JoinColumn(name = "solicitante_id")
+    @JsonIgnore
     private Solicitante solicitante;
 
     public Long getId() { return id; }

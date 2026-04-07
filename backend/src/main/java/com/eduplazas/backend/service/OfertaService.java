@@ -12,11 +12,15 @@ public class OfertaService {
     private final OfertaRepository ofertaRepository;
     private final UsuarioRepository usuarioRepository;
     private final ConvocatoriaRepository convocatoriaRepository;
+    private final CriterioAdmisionRepository criterioAdmisionRepository;
 
-    public OfertaService(OfertaRepository ofertaRepository, UsuarioRepository usuarioRepository, ConvocatoriaRepository convocatoriaRepository) {
+    public OfertaService(OfertaRepository ofertaRepository, UsuarioRepository usuarioRepository,
+                         ConvocatoriaRepository convocatoriaRepository,
+                         CriterioAdmisionRepository criterioAdmisionRepository) {
         this.ofertaRepository = ofertaRepository;
         this.usuarioRepository = usuarioRepository;
         this.convocatoriaRepository = convocatoriaRepository;
+        this.criterioAdmisionRepository = criterioAdmisionRepository;
     }
 
     public List<Oferta> obtenerTodas() {
@@ -31,7 +35,7 @@ public class OfertaService {
         return ofertaRepository.save(oferta);
     }
     //Será lo que se ejecuta cuando una universidad rellena el formulario de publicar oferta.
-public Oferta publicarOferta(Long usuarioId, String grado, int plazas) {
+public Oferta publicarOferta(Long usuarioId, String grado, int plazas, List<CriterioAdmision> criterios) {
     Usuario usuario = usuarioRepository.findById(usuarioId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -52,7 +56,16 @@ public Oferta publicarOferta(Long usuarioId, String grado, int plazas) {
     oferta.setUniversidad(usuario.getUniversidad());
     oferta.setConvocatoria(convocatoria);
 
-    return ofertaRepository.save(oferta);
+    Oferta ofertaGuardada = ofertaRepository.save(oferta);
+
+    if (criterios != null) {
+        for (CriterioAdmision criterio : criterios) {
+            criterio.setOferta(ofertaGuardada);
+            criterioAdmisionRepository.save(criterio);
+        }
+    }
+
+    return ofertaGuardada;
 }
 
 //Para que la universidad solo vea los grados que ella tiene publicados

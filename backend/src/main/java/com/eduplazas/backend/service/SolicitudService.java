@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,13 @@ public class SolicitudService {
             throw new RuntimeException("No puede haber grados repetidos en la solicitud");
         }
 
-        List<Oferta> ofertas = ofertaRepository.findAllById(idsOfertas);
+        List<Oferta> ofertasRaw = ofertaRepository.findAllById(idsOfertas);
+        Map<Long, Oferta> ofertasMap = ofertasRaw.stream()
+                .collect(Collectors.toMap(Oferta::getId, o -> o));
+        List<Oferta> ofertas = idsOfertas.stream()
+                .map(ofertasMap::get)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toList());
 
         for (Oferta oferta : ofertas) {
             if (!oferta.getConvocatoria().getId().equals(convocatoria.getId())) {
@@ -117,6 +124,10 @@ public class SolicitudService {
         return ofertaRepository.findByConvocatoriaId(convocatoriaId);
     }
 
+    private static final java.util.Set<String> ASIGNATURAS_COMUNES = java.util.Set.of(
+        "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas"
+    );
+
     @Transactional
     public void guardarNotas(Long solicitanteId, List<NotaAsignatura> notas) {
         Solicitante solicitante = solicitanteRepository.findById(solicitanteId)
@@ -124,9 +135,18 @@ public class SolicitudService {
 
         notaAsignaturaRepository.deleteBySolicitanteId(solicitanteId);
 
+        double notaBase = 0.0;
         for (NotaAsignatura nota : notas) {
+            if ("Bachillerato".equals(nota.getAsignatura())) {
+                notaBase += nota.getNota() * 0.6;
+            } else if (ASIGNATURAS_COMUNES.contains(nota.getAsignatura())) {
+                notaBase += nota.getNota() * 0.1;
+            }
             nota.setSolicitante(solicitante);
             notaAsignaturaRepository.save(nota);
         }
+
+        solicitante.setNotaBase(notaBase);
+        solicitanteRepository.save(solicitante);
     }
 }

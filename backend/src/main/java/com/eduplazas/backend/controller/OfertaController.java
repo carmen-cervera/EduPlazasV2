@@ -1,5 +1,6 @@
 package com.eduplazas.backend.controller;
 
+import com.eduplazas.backend.model.CriterioAdmision;
 import com.eduplazas.backend.model.Oferta;
 import com.eduplazas.backend.service.OfertaService;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,18 @@ public class OfertaController {
             String grado = body.get("grado").toString();
             int plazas = Integer.parseInt(body.get("plazas").toString());
 
-            Oferta oferta = ofertaService.publicarOferta(usuarioId, grado, plazas);
+            List<Map<String, Object>> criteriosRaw = (List<Map<String, Object>>) body.get("criterios");
+            List<CriterioAdmision> criterios = null;
+            if (criteriosRaw != null) {
+                criterios = criteriosRaw.stream().map(c -> {
+                    CriterioAdmision criterio = new CriterioAdmision();
+                    criterio.setAsignatura(c.get("asignatura").toString());
+                    criterio.setPeso(Double.parseDouble(c.get("peso").toString()));
+                    return criterio;
+                }).toList();
+            }
+
+            Oferta oferta = ofertaService.publicarOferta(usuarioId, grado, plazas, criterios);
             return ResponseEntity.ok(oferta);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

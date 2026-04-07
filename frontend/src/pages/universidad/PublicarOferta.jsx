@@ -11,6 +11,33 @@ function PublicarOferta() {
   const [plazas, setPlazas] = useState('')
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
+  const [criterios, setCriterios] = useState([{ asignatura: '', peso: '' }])
+
+  const ASIGNATURAS_ESPECIFICAS = [
+    'Análisis Musical II', 'Artes Escénicas II', 'Biología', 'Ciencias Generales',
+    'Coro y Técnica Vocal II', 'Dibujo Artístico II', 'Dibujo Técnico II',
+    'Dibujo Técn. Aplicado a las Artes Plásticas y al Diseño II', 'Diseño',
+    'Empresa y Diseño de Modelos de Negocio', 'Física', 'Fundamentos Artísticos',
+    'Geografía', 'Geología y CC. Ambientales', 'Griego II', 'Historia de España',
+    'Historia de la Filosofía', 'Historia de la Música y de la Danza',
+    'Historia del Arte', 'Latín II', 'Literatura Dramática',
+    'Matemáticas II', 'Matemáticas Apl. CC. Soc. II', 'Movimientos Culturales y Artísticos',
+    'Química', 'Técnicas de Expresión Gráfico-Plástica', 'Tecnología e Ingeniería II',
+  ]
+
+  const handleCriterioChange = (index, field, value) => {
+    const nuevos = [...criterios]
+    nuevos[index][field] = value
+    setCriterios(nuevos)
+  }
+
+  const añadirCriterio = () => {
+    setCriterios([...criterios, { asignatura: '', peso: '' }])
+  }
+
+  const eliminarCriterio = (index) => {
+    setCriterios(criterios.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,11 +53,20 @@ function PublicarOferta() {
       return
     }
 
+    const criteriosValidos = criterios.filter(c => c.asignatura && c.peso !== '')
+    for (const c of criteriosValidos) {
+      if (Number(c.peso) !== 0.1 && Number(c.peso) !== 0.2) {
+        setError('El peso de cada asignatura debe ser 0.1 o 0.2')
+        return
+      }
+    }
+
     try {
-      await publicarOferta(usuario.id, grado.trim(), parseInt(plazas))
+      await publicarOferta(usuario.id, grado.trim(), parseInt(plazas), criteriosValidos.map(c => ({ asignatura: c.asignatura, peso: Number(c.peso) })))
       setExito('Oferta publicada correctamente')
       setGrado('')
       setPlazas('')
+      setCriterios([{ asignatura: '', peso: '' }])
     } catch (err) {
       setError(err.response?.data || 'Error al publicar la oferta')
     }
@@ -97,6 +133,37 @@ function PublicarOferta() {
                   value={plazas}
                   onChange={e => setPlazas(e.target.value)}
                 />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Asignaturas que ponderan</label>
+                {criterios.map((criterio, index) => (
+                  <div key={index} className={styles.criterioRow}>
+                    <select
+                      className={styles.input}
+                      value={criterio.asignatura}
+                      onChange={e => handleCriterioChange(index, 'asignatura', e.target.value)}
+                    >
+                      <option value="">Selecciona asignatura</option>
+                      {ASIGNATURAS_ESPECIFICAS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                    <select
+                      className={styles.input}
+                      value={criterio.peso}
+                      onChange={e => handleCriterioChange(index, 'peso', e.target.value)}
+                    >
+                      <option value="">Peso</option>
+                      <option value="0.1">0.1</option>
+                      <option value="0.2">0.2</option>
+                    </select>
+                    {criterios.length > 1 && (
+                      <button type="button" className={styles.btnEliminar} onClick={() => eliminarCriterio(index)}>✕</button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className={styles.btnAñadir} onClick={añadirCriterio}>
+                  + Añadir asignatura
+                </button>
               </div>
 
               {error && <p className={styles.error}>{error}</p>}

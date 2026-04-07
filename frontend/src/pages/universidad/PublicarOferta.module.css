@@ -233,3 +233,36 @@
   font-size: 0.85rem;
   margin: 4px 0 0 0;
 }
+
+.criterioRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.criterioRow .input {
+  flex: 1;
+}
+
+.btnEliminar {
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btnAñadir {
+  background: none;
+  color: #3552a5;
+  border: 2px dashed #3552a5;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 4px;
+}

@@ -5,6 +5,7 @@ import com.eduplazas.backend.repository.*;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,9 +19,10 @@ public class DataLoader {
             UniversidadRepository universidadRepo,
             OfertaRepository ofertaRepo,
             SolicitanteRepository solicitanteRepo,
-            SolicitudRepository solicitudRepo) {
+            UsuarioRepository usuarioRepo) {
 
         return args -> {
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
             // Convocatoria
             Convocatoria conv = new Convocatoria();
@@ -166,59 +168,45 @@ public class DataLoader {
             oferta5.setCriterios(List.of(c9, c10));
             ofertaRepo.save(oferta5);
 
+            // Usuarios estudiante de ejemplo
+            Usuario uAna = new Usuario();
+            uAna.setNombre("Ana");
+            uAna.setApellidos("García López");
+            uAna.setEmail("ana@eduplazas.es");
+            uAna.setPassword(encoder.encode("1234"));
+            uAna.setDni("11111111A");
+            uAna.setIdEvau("MAD-2025-001");
+            uAna.setRol("ESTUDIANTE");
+            usuarioRepo.save(uAna);
+
+            Usuario uCarlos = new Usuario();
+            uCarlos.setNombre("Carlos");
+            uCarlos.setApellidos("Martínez Ruiz");
+            uCarlos.setEmail("carlos@eduplazas.es");
+            uCarlos.setPassword(encoder.encode("1234"));
+            uCarlos.setDni("22222222B");
+            uCarlos.setIdEvau("MAD-2025-002");
+            uCarlos.setRol("ESTUDIANTE");
+            usuarioRepo.save(uCarlos);
+
             // Solicitantes
             Solicitante s1 = new Solicitante();
             s1.setNombre("Ana");
             s1.setApellidos("García López");
-            s1.setEmail("ana.garcia@email.com");
-            s1.setNotaBase(12.5);
+            s1.setEmail("ana@eduplazas.es");
+            s1.setNotaBase(0.0);
+            s1.setUsuario(uAna);
 
-            NotaAsignatura n1 = new NotaAsignatura();
-            n1.setAsignatura("Matemáticas II");
-            n1.setNota(9.5);
-            n1.setSolicitante(s1);
-
-            NotaAsignatura n2 = new NotaAsignatura();
-            n2.setAsignatura("Física");
-            n2.setNota(8.0);
-            n2.setSolicitante(s1);
-
-            s1.setNotas(List.of(n1, n2));
             solicitanteRepo.save(s1);
 
             Solicitante s2 = new Solicitante();
             s2.setNombre("Carlos");
             s2.setApellidos("Martínez Ruiz");
-            s2.setEmail("carlos.martinez@email.com");
-            s2.setNotaBase(11.0);
+            s2.setEmail("carlos@eduplazas.es");
+            s2.setNotaBase(0.0);
+            s2.setUsuario(uCarlos);
 
-            NotaAsignatura n3 = new NotaAsignatura();
-            n3.setAsignatura("Biología");
-            n3.setNota(9.0);
-            n3.setSolicitante(s2);
-
-            NotaAsignatura n4 = new NotaAsignatura();
-            n4.setAsignatura("Química");
-            n4.setNota(8.5);
-            n4.setSolicitante(s2);
-
-            s2.setNotas(List.of(n3, n4));
             solicitanteRepo.save(s2);
-
-            // Solicitudes
-            Solicitud sol1 = new Solicitud();
-            sol1.setSolicitante(s1);
-            sol1.setConvocatoria(conv);
-            sol1.setEstado("ENVIADA");
-            sol1.setPreferencias(List.of(oferta1, oferta2));
-            solicitudRepo.save(sol1);
-
-            Solicitud sol2 = new Solicitud();
-            sol2.setSolicitante(s2);
-            sol2.setConvocatoria(conv);
-            sol2.setEstado("ENVIADA");
-            sol2.setPreferencias(List.of(oferta2, oferta1));
-            solicitudRepo.save(sol2);
 
             System.out.println("✅ Datos de ejemplo cargados correctamente");
         };
