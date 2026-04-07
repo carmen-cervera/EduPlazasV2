@@ -3,7 +3,6 @@ package com.eduplazas.backend.service;
 import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.repository.*;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -15,85 +14,76 @@ public class AsignacionService {
     private final SolicitudRepository solicitudRepository;
     private final AsignacionRepository asignacionRepository;
     private final OfertaRepository ofertaRepository;
+    private final UniversidadRepository universidadRepository;
 
     public AsignacionService(SolicitudRepository solicitudRepository,
                              AsignacionRepository asignacionRepository,
-                             OfertaRepository ofertaRepository) {
+                             OfertaRepository ofertaRepository,
+                             UniversidadRepository universidadRepository) {
         this.solicitudRepository = solicitudRepository;
         this.asignacionRepository = asignacionRepository;
         this.ofertaRepository = ofertaRepository;
+        this.universidadRepository = universidadRepository;
     }
 
     @Transactional
     public void procesarAsignaciones(Long universidadId) {
 
-        // 1. Ofertas de esta universidad
-        List<Oferta> ofertasUniversidad = ofertaRepository.findAll().stream()
-                .filter(o -> o.getUniversidad() != null && o.getUniversidad().getId().equals(universidadId))
+        // 1. Marcar esta universidad como lista
+        Universidad universidad = universidadRepository.findById(universidadId)
+                .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
+        universidad.setListaParaAsignar(true);
+        universidadRepository.save(universidad);
+
+        // 2. Obtener todas las ofertas de universidades marcadas como listas
+        List<Universidad> universidadesListas = universidadRepository.findAll().stream()
+                .filter(Universidad::isListaParaAsignar)
                 .collect(Collectors.toList());
 
-        Set<Long> idsOfertas = ofertasUniversidad.stream()
+        Set<Long> idsUniversidadesListas = universidadesListas.stream()
+                .map(Universidad::getId)
+                .collect(Collectors.toSet());
+
+        List<Oferta> todasLasOfertas = ofertaRepository.findAll().stream()
+                .filter(o -> o.getUniversidad() != null && idsUniversidadesListas.contains(o.getUniversidad().getId()))
+                .collect(Collectors.toList());
+
+        Set<Long> idsOfertas = todasLasOfertas.stream()
                 .map(Oferta::getId)
                 .collect(Collectors.toSet());
 
-        Map<Long, Oferta> ofertasById = ofertasUniversidad.stream()
+        Map<Long, Oferta> ofertasById = todasLasOfertas.stream()
                 .collect(Collectors.toMap(Oferta::getId, o -> o));
 
-        // 2. Borrar asignaciones previas de esta universidad para recalcular desde cero
-        List<Asignacion> existentesPropias = asignacionRepository.findAll().stream()
+        // 3. Borrar todas las asignaciones del pool actual para recalcular desde cero
+        List<Asignacion> existentes = asignacionRepository.findAll().stream()
                 .filter(a -> idsOfertas.contains(a.getOferta().getId()))
                 .collect(Collectors.toList());
-        asignacionRepository.deleteAll(existentesPropias);
+        asignacionRepository.deleteAll(existentes);
         asignacionRepository.flush();
 
-        // 3. Solicitudes que incluyen al menos una oferta de esta universidad
+        // 4. Solicitudes que incluyen al menos una oferta del pool
         List<Solicitud> solicitudes = solicitudRepository.findAll().stream()
                 .filter(s -> s.getPreferencias().stream().anyMatch(o -> idsOfertas.contains(o.getId())))
                 .collect(Collectors.toList());
 
-        // 4. Mapa de preferencias globales del alumno (todas las ofertas, en orden)
-        //    para poder comparar si una oferta es mejor o peor que una asignación existente
-        Map<Long, List<Long>> preferenciasGlobales = new HashMap<>();
-        for (Solicitud s : solicitudes) {
-            List<Long> prefs = s.getPreferencias().stream()
-                    .map(Oferta::getId)
-                    .collect(Collectors.toList());
-            preferenciasGlobales.put(s.getSolicitante().getId(), prefs);
-        }
-
-        // 5. Filtrar: excluir alumnos que ya tienen una asignación de OTRA universidad
-        //    para una oferta con MEJOR prioridad que cualquiera de esta universidad
+        // 5. Construir estructuras por solicitante
         Map<Long, Solicitante> solicitantesById = new HashMap<>();
+        Map<Long, List<Long>> preferencias = new HashMap<>();  // solo ofertas del pool, en orden
         Map<Long, Map<Long, Double>> notasMap = new HashMap<>();
 
         for (Solicitud s : solicitudes) {
             Solicitante sol = s.getSolicitante();
-            List<Long> prefsGlobales = preferenciasGlobales.get(sol.getId());
-
-            // Mejor índice que esta universidad puede ofrecer al alumno
-            int mejorIndiceEstaUniv = prefsGlobales.stream()
-                    .filter(idsOfertas::contains)
-                    .mapToInt(prefsGlobales::indexOf)
-                    .min()
-                    .orElse(Integer.MAX_VALUE);
-
-            // Índice de la asignación existente de otra universidad (si la hay)
-            List<Asignacion> asignacionesOtras = asignacionRepository.findAllBySolicitanteId(sol.getId()).stream()
-                    .filter(a -> !idsOfertas.contains(a.getOferta().getId()))
-                    .collect(Collectors.toList());
-
-            boolean yaTieneAsignacionMejor = asignacionesOtras.stream().anyMatch(a -> {
-                int indiceExistente = prefsGlobales.indexOf(a.getOferta().getId());
-                return indiceExistente >= 0 && indiceExistente < mejorIndiceEstaUniv;
-            });
-
-            if (yaTieneAsignacionMejor) continue; // Ya está mejor asignado, no participar
-
             solicitantesById.put(sol.getId(), sol);
 
-            // Calcular nota ponderada por oferta de esta universidad
+            List<Long> prefs = s.getPreferencias().stream()
+                    .filter(o -> idsOfertas.contains(o.getId()))
+                    .map(Oferta::getId)
+                    .collect(Collectors.toList());
+            preferencias.put(sol.getId(), prefs);
+
             Map<Long, Double> notasPorOferta = new HashMap<>();
-            for (Oferta o : ofertasUniversidad) {
+            for (Oferta o : todasLasOfertas) {
                 double nota = sol.getNotaBase();
                 for (CriterioAdmision c : o.getCriterios()) {
                     for (NotaAsignatura na : sol.getNotas()) {
@@ -108,19 +98,9 @@ public class AsignacionService {
             notasMap.put(sol.getId(), notasPorOferta);
         }
 
-        // 6. Preferencias filtradas a solo las ofertas de esta universidad
-        Map<Long, List<Long>> preferencias = new HashMap<>();
-        for (Long studentId : solicitantesById.keySet()) {
-            List<Long> prefsGlobales = preferenciasGlobales.get(studentId);
-            List<Long> prefs = prefsGlobales.stream()
-                    .filter(idsOfertas::contains)
-                    .collect(Collectors.toList());
-            preferencias.put(studentId, prefs);
-        }
-
-        // 7. Algoritmo de Gale-Shapley
+        // 6. Algoritmo de Gale-Shapley global
         Map<Long, Map<Long, Double>> aceptados = new HashMap<>();
-        for (Oferta o : ofertasUniversidad) {
+        for (Oferta o : todasLasOfertas) {
             aceptados.put(o.getId(), new HashMap<>());
         }
 
@@ -136,7 +116,7 @@ public class AsignacionService {
             List<Long> prefs = preferencias.get(studentId);
             int idx = nextProposal.get(studentId);
 
-            if (idx >= prefs.size()) continue; // sin más opciones en esta universidad
+            if (idx >= prefs.size()) continue; // sin más opciones en el pool
 
             Long ofertaId = prefs.get(idx);
             nextProposal.put(studentId, idx + 1);
@@ -166,30 +146,12 @@ public class AsignacionService {
             }
         }
 
-        // 8. Guardar asignaciones finales
-        //    Si el alumno tenía asignación de otra universidad para peor prioridad → eliminarla
+        // 7. Guardar asignaciones finales
         for (Map.Entry<Long, Map<Long, Double>> entry : aceptados.entrySet()) {
             Oferta oferta = ofertasById.get(entry.getKey());
             for (Map.Entry<Long, Double> alumno : entry.getValue().entrySet()) {
-                Long studentId = alumno.getKey();
-                Solicitante solicitante = solicitantesById.get(studentId);
-                List<Long> prefsGlobales = preferenciasGlobales.get(studentId);
-                int indiceNuevo = prefsGlobales.indexOf(oferta.getId());
-
-                // Eliminar asignaciones de otras universidades con peor prioridad
-                List<Asignacion> asignacionesOtras = asignacionRepository.findAllBySolicitanteId(solicitante.getId()).stream()
-                        .filter(a -> !idsOfertas.contains(a.getOferta().getId()))
-                        .collect(Collectors.toList());
-
-                for (Asignacion existente : asignacionesOtras) {
-                    int indiceExistente = prefsGlobales.indexOf(existente.getOferta().getId());
-                    if (indiceExistente < 0 || indiceExistente > indiceNuevo) {
-                        asignacionRepository.delete(existente);
-                    }
-                }
-
                 Asignacion asignacion = new Asignacion();
-                asignacion.setSolicitante(solicitante);
+                asignacion.setSolicitante(solicitantesById.get(alumno.getKey()));
                 asignacion.setOferta(oferta);
                 asignacion.setNotaFinal(alumno.getValue());
                 asignacion.setEstado("ASIGNADA");
@@ -203,12 +165,9 @@ public class AsignacionService {
     }
 
     public Optional<Asignacion> obtenerPorUsuario(Long usuarioId) {
-        // Si hay varias asignaciones (no debería ocurrir), devolver la de mejor prioridad
         List<Asignacion> todas = asignacionRepository.findAllBySolicitanteUsuarioId(usuarioId);
         if (todas.isEmpty()) return Optional.empty();
         if (todas.size() == 1) return Optional.of(todas.get(0));
-        // Fallback: devolver la de mayor nota final
         return todas.stream().max(Comparator.comparingDouble(Asignacion::getNotaFinal));
     }
-
 }
