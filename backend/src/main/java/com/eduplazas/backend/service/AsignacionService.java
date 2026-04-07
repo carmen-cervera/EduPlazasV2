@@ -21,26 +21,43 @@ public class AsignacionService {
         this.ofertaRepository = ofertaRepository;
     }
 
-    public void procesarAsignaciones() {
+    public void procesarAsignaciones(Long universidadId) {
+
+        // Solo las ofertas de esta universidad
+        List<Oferta> ofertasUniversidad = ofertaRepository.findAll().stream()
+                .filter(o -> o.getUniversidad() != null && o.getUniversidad().getId().equals(universidadId))
+                .collect(java.util.stream.Collectors.toList());
+
+        Set<Long> idsOfertasUniversidad = ofertasUniversidad.stream()
+                .map(Oferta::getId)
+                .collect(java.util.stream.Collectors.toSet());
 
         Map<Long, Integer> plazasDisponibles = new HashMap<>();
-        for (Oferta oferta : ofertaRepository.findAll()) {
+        for (Oferta oferta : ofertasUniversidad) {
             plazasDisponibles.put(oferta.getId(), oferta.getPlazas());
         }
 
-        Map<Long, Boolean> yaAsignado = new HashMap<>();
+        // Solo solicitudes que incluyan al menos una oferta de esta universidad
+        List<Solicitud> solicitudes = solicitudRepository.findAll().stream()
+                .filter(s -> s.getPreferencias().stream()
+                        .anyMatch(o -> idsOfertasUniversidad.contains(o.getId())))
+                .collect(java.util.stream.Collectors.toList());
 
-        List<Solicitud> solicitudes = solicitudRepository.findAll();
         solicitudes.sort((a, b) ->
             Double.compare(b.getSolicitante().getNotaBase(),
                            a.getSolicitante().getNotaBase()));
 
+        // Solicitantes ya asignados en alguna oferta de ESTA universidad
+        Set<Long> yaAsignadoEnEstaUniversidad = new HashSet<>();
+
         for (Solicitud solicitud : solicitudes) {
             Solicitante solicitante = solicitud.getSolicitante();
 
-            if (yaAsignado.getOrDefault(solicitante.getId(), false)) continue;
+            if (yaAsignadoEnEstaUniversidad.contains(solicitante.getId())) continue;
 
             for (Oferta oferta : solicitud.getPreferencias()) {
+                // Ignorar ofertas de otras universidades
+                if (!idsOfertasUniversidad.contains(oferta.getId())) continue;
 
                 double notaPonderada = solicitante.getNotaBase();
                 for (CriterioAdmision criterio : oferta.getCriterios()) {
@@ -61,7 +78,7 @@ public class AsignacionService {
                     asignacionRepository.save(asignacion);
 
                     plazasDisponibles.put(oferta.getId(), plazas - 1);
-                    yaAsignado.put(solicitante.getId(), true);
+                    yaAsignadoEnEstaUniversidad.add(solicitante.getId());
                     break;
                 }
             }

@@ -19,10 +19,10 @@ public class AsignacionController {
         this.asignacionService = asignacionService;
     }
 
-    // Lanzar el proceso de asignación
+    // Lanzar el proceso de asignación para una universidad concreta
     @PostMapping("/procesar")
-    public ResponseEntity<String> procesarAsignaciones() {
-        asignacionService.procesarAsignaciones();
+    public ResponseEntity<String> procesarAsignaciones(@RequestParam Long universidadId) {
+        asignacionService.procesarAsignaciones(universidadId);
         return ResponseEntity.ok("Asignación procesada correctamente");
     }
 

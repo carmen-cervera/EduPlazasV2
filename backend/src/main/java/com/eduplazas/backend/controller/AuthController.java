@@ -69,11 +69,17 @@ public class AuthController {
             if (usuario == null) {
                 return ResponseEntity.badRequest().body("Email o contraseña incorrectos");
             }
-            return ResponseEntity.ok(Map.of(
-                "id", usuario.getId(),
-                "email", usuario.getEmail(),
-                "rol", usuario.getRol()
-            ));
+            Map<String, Object> respuesta = new java.util.HashMap<>();
+            respuesta.put("id", usuario.getId());
+            respuesta.put("email", usuario.getEmail());
+            respuesta.put("rol", usuario.getRol());
+            if (usuario.getUniversidad() != null) {
+                respuesta.put("universidad", Map.of(
+                    "id", usuario.getUniversidad().getId(),
+                    "nombre", usuario.getUniversidad().getNombre()
+                ));
+            }
+            return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error interno del servidor");
         }

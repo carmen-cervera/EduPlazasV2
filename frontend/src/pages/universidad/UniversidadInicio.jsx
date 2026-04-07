@@ -18,7 +18,7 @@ function UniversidadInicio() {
 
   const handleProcesarAsignaciones = async () => {
     try {
-      await procesarAsignaciones()
+      await procesarAsignaciones(usuario?.universidad?.id)
       setMensajeProcesar('Asignaciones procesadas correctamente')
     } catch (err) {
       setMensajeProcesar(err.response?.data || 'Error al procesar las asignaciones')
