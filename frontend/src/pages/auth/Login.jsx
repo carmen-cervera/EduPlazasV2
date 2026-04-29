@@ -17,9 +17,10 @@ function Login({ rol }) {
       const response = await login({ email, password })
       const usuario = response.data
       localStorage.setItem('usuario', JSON.stringify(usuario))
-      if (usuario.rol === 'ESTUDIANTE') {
+  
+      if (usuario.rol === 'ESTUDIANTE' || (usuario.rol === 'ADMIN' && esEstudiante)) {
         navigate('/estudiante/inicio')
-      } else {
+      } else if (usuario.rol === 'UNIVERSIDAD' || (usuario.rol === 'ADMIN' && !esEstudiante)) {
         navigate('/universidad/inicio')
       }
     } catch (err) {

@@ -20,7 +20,8 @@ public class DataLoader {
             OfertaRepository ofertaRepo,
             EstudianteRepository estudianteRepo,
             RepresentanteUniversidadRepository representanteRepo,
-            CriterioAdmisionRepository criterioRepo) {
+            CriterioAdmisionRepository criterioRepo,
+            UsuarioRepository usuarioRepo) {
 
         return args -> {
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -195,7 +196,18 @@ public class DataLoader {
             carlos.setNotaBase(0.0);
             estudianteRepo.save(carlos);
 
-            System.out.println("✅ Datos de ejemplo cargados correctamente");
+            // Admin
+            Admin admin = new Admin();
+            admin.setNombre("Admin");
+            admin.setApellidos("EduPlazas");
+            admin.setEmail("admin@eduplazas.es");
+            admin.setPassword(encoder.encode("admin1234"));
+            admin.setDni("00000000A");
+            usuarioRepo.save(admin);
+
+            
+
+            System.out.println("Datos de ejemplo cargados correctamente");
         };
     }
 }

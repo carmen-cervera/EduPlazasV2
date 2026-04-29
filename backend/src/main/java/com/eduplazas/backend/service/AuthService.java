@@ -18,22 +18,28 @@ public class AuthService {
     private final EstudianteRepository estudianteRepository;
     private final RepresentanteUniversidadRepository representanteRepository;
     private final UniversidadRepository universidadRepository;
+    private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AuthService(EstudianteRepository estudianteRepository,
                        RepresentanteUniversidadRepository representanteRepository,
-                       UniversidadRepository universidadRepository) {
+                       UniversidadRepository universidadRepository,
+                       UsuarioRepository usuarioRepository) {
         this.estudianteRepository = estudianteRepository;
         this.representanteRepository = representanteRepository;
         this.universidadRepository = universidadRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     // REGISTRO ESTUDIANTE
     public String registrarEstudiante(String nombre, String apellidos, String email,
                                       String password, String dni, String idEvau) throws Exception {
-        if (estudianteRepository.existsByEmail(email)) {
+        if (usuarioRepository.existsByEmail(email)) {
             return "ERROR: El email ya está registrado";
+        }
+        if (usuarioRepository.existsByDni(dni)) {
+            return "ERROR: El DNI ya está registrado";
         }
         if (estudianteRepository.existsByIdEvau(idEvau)) {
             return "ERROR: El ID de EvAU ya está registrado";
@@ -59,8 +65,11 @@ public class AuthService {
     public String registrarRepresentante(String nombre, String apellidos,
                                          String emailInstitucional, String password,
                                          String dni, Long universidadId) throws Exception {
-        if (representanteRepository.existsByEmailInstitucional(emailInstitucional)) {
+        if (usuarioRepository.existsByEmail(emailInstitucional)) {
             return "ERROR: El email ya está registrado";
+        }
+        if (usuarioRepository.existsByDni(dni)) {
+            return "ERROR: El DNI ya está registrado";
         }
         if (!validarEmailUniversidad(emailInstitucional)) {
             return "ERROR: El email no tiene una extensión universitaria válida";
@@ -74,6 +83,7 @@ public class AuthService {
         RepresentanteUniversidad representante = new RepresentanteUniversidad();
         representante.setNombre(nombre);
         representante.setApellidos(apellidos);
+        representante.setEmail(emailInstitucional); // email común para login
         representante.setEmailInstitucional(emailInstitucional);
         representante.setPassword(passwordEncoder.encode(password));
         representante.setDni(dni);
@@ -83,24 +93,12 @@ public class AuthService {
         return "OK";
     }
 
-    // LOGIN
-    public Object login(String email, String password) {
-        // Intentar como estudiante
-        Optional<Estudiante> estudiante = estudianteRepository.findByEmail(email);
-        if (estudiante.isPresent()) {
-            if (!passwordEncoder.matches(password, estudiante.get().getPassword())) return null;
-            return estudiante.get();
-        }
-
-        // Intentar como representante
-        Optional<RepresentanteUniversidad> representante =
-                representanteRepository.findByEmailInstitucional(email);
-        if (representante.isPresent()) {
-            if (!passwordEncoder.matches(password, representante.get().getPassword())) return null;
-            return representante.get();
-        }
-
-        return null;
+    // LOGIN — busca por email en todos los tipos de usuario
+    public Usuario login(String email, String password) {
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+        if (usuario == null) return null;
+        if (!passwordEncoder.matches(password, usuario.getPassword())) return null;
+        return usuario;
     }
 
     // Validar ID EvAU contra el archivo JSON

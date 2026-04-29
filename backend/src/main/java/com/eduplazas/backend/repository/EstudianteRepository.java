@@ -7,6 +7,5 @@ import java.util.Optional;
 public interface EstudianteRepository extends CrudRepository<Estudiante, Long> {
     Optional<Estudiante> findByEmail(String email);
     Optional<Estudiante> findByIdEvau(String idEvau);
-    boolean existsByEmail(String email);
     boolean existsByIdEvau(String idEvau);
 }

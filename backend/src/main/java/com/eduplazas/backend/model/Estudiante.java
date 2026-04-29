@@ -9,7 +9,6 @@ import java.util.List;
 public class Estudiante extends Usuario {
 
     private String idEvau;
-    private String email;
     private double notaBase;
 
     @OneToMany(mappedBy = "estudiante", cascade = CascadeType.ALL)
@@ -22,8 +21,6 @@ public class Estudiante extends Usuario {
 
     public String getIdEvau() { return idEvau; }
     public void setIdEvau(String idEvau) { this.idEvau = idEvau; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
     public double getNotaBase() { return notaBase; }
     public void setNotaBase(double notaBase) { this.notaBase = notaBase; }
     public List<NotaAsignatura> getNotas() { return notas; }

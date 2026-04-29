@@ -1,8 +1,6 @@
 package com.eduplazas.backend.controller;
 
-import com.eduplazas.backend.model.Estudiante;
-import com.eduplazas.backend.model.RepresentanteUniversidad;
-import com.eduplazas.backend.model.Universidad;
+import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -68,29 +66,28 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
         try {
-            Object usuario = authService.login(body.get("email"), body.get("password"));
+            Usuario usuario = authService.login(body.get("email"), body.get("password"));
             if (usuario == null) {
                 return ResponseEntity.badRequest().body("Email o contraseña incorrectos");
             }
 
             Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("id", usuario.getId());
+            respuesta.put("email", usuario.getEmail());
+            respuesta.put("nombre", usuario.getNombre());
 
-            if (usuario instanceof Estudiante e) {
-                respuesta.put("id", e.getId());
-                respuesta.put("email", e.getEmail());
+            if (usuario instanceof Estudiante) {
                 respuesta.put("rol", "ESTUDIANTE");
-                respuesta.put("nombre", e.getNombre());
             } else if (usuario instanceof RepresentanteUniversidad r) {
-                respuesta.put("id", r.getId());
-                respuesta.put("email", r.getEmailInstitucional());
                 respuesta.put("rol", "UNIVERSIDAD");
-                respuesta.put("nombre", r.getNombre());
                 if (r.getUniversidad() != null) {
                     respuesta.put("universidad", Map.of(
                         "id", r.getUniversidad().getId(),
                         "nombre", r.getUniversidad().getNombre()
                     ));
                 }
+            } else if (usuario instanceof Admin) {
+                respuesta.put("rol", "ADMIN");
             }
 
             return ResponseEntity.ok(respuesta);
