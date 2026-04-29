@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {obtenerConvocatoriaAbierta, obtenerOfertas} from '../../services/solicitudService'
+import { obtenerConvocatoriaAbierta, obtenerOfertas } from '../../services/solicitudService'
 import styles from './ExplorarGrados.module.css'
 import logo from '../../assets/LogoPequeño_FondoAzul_SinGorro.png'
 import avatar from '../../assets/avatar.png'
@@ -20,22 +20,17 @@ function ExplorarGrados() {
   const cargarDatos = async () => {
     try {
       setError('')
-
       const resConvocatoria = await obtenerConvocatoriaAbierta()
       setConvocatoria(resConvocatoria.data)
 
       const resOfertas = await obtenerOfertas(resConvocatoria.data.id)
-
       if (Array.isArray(resOfertas.data)) {
-        const ofertasLimpias = resOfertas.data.map((oferta) => ({
-          id: oferta.id,
-          grado: oferta.grado,
-          plazas: oferta.plazas,
-          universidadNombre: oferta.universidad?.nombre || '',
-          provincia: oferta.universidad?.provincia || ''
-        }))
-
-        setOfertas(ofertasLimpias)
+        setOfertas(resOfertas.data.map(o => ({
+          id: o.id,
+          grado: o.grado,
+          totalPlazas: o.totalPlazas,
+          universidadNombre: o.universidad?.nombre || ''
+        })))
       } else {
         setOfertas([])
         setError('No se han podido cargar los grados')
@@ -54,41 +49,24 @@ function ExplorarGrados() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img
-          src={logo}
-          alt="EduPlazas"
-          className={styles.logoImg}
-          onClick={() => navigate('/')}
-        />
+        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
         <h1 className={styles.tituloHeader}>Explorar grados</h1>
       </header>
 
       <div className={styles.content}>
         <aside className={styles.sidebar}>
           <div className={styles.userBox}>
-            <img
-            src={avatar}
-            alt="EduPlazas"
-            className={styles.avatar}
-            />
+            <img src={avatar} alt="EduPlazas" className={styles.avatar} />
             <p className={styles.email}>{usuario?.email}</p>
           </div>
 
           <div className={styles.menu}>
-            <button
-              className={styles.button}
-              onClick={() => navigate('/estudiante/solicitud')}
-            >
+            <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
               Nueva solicitud
             </button>
-
-            <button
-                className={styles.button}
-                onClick={() => navigate('/estudiante/inicio')}
-            >
+            <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
               Volver
             </button>
-
           </div>
 
           <button className={styles.button} onClick={cerrarSesion}>
@@ -100,7 +78,7 @@ function ExplorarGrados() {
           <div className={styles.card}>
             {convocatoria && (
               <p className={styles.convocatoria}>
-                <strong>Convocatoria abierta:</strong> {convocatoria.nombre}
+                <strong>Convocatoria abierta:</strong> {convocatoria.cursoAcademico}
               </p>
             )}
 
@@ -112,23 +90,21 @@ function ExplorarGrados() {
                   <tr>
                     <th>Grado</th>
                     <th>Universidad</th>
-                    <th>Provincia</th>
                     <th>Plazas</th>
                   </tr>
                 </thead>
                 <tbody>
                   {ofertas.length > 0 ? (
-                    ofertas.map((oferta) => (
+                    ofertas.map(oferta => (
                       <tr key={oferta.id}>
                         <td>{oferta.grado}</td>
                         <td>{oferta.universidadNombre}</td>
-                        <td>{oferta.provincia}</td>
-                        <td>{oferta.plazas}</td>
+                        <td>{oferta.totalPlazas}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="4">No hay grados disponibles.</td>
+                      <td colSpan="3">No hay grados disponibles.</td>
                     </tr>
                   )}
                 </tbody>

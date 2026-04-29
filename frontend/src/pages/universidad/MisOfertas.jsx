@@ -25,12 +25,7 @@ function MisOfertas() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img
-          src={logo}
-          alt="EduPlazas"
-          className={styles.logoImg}
-          onClick={() => navigate('/')}
-        />
+        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
         <h1 className={styles.tituloHeader}>Mis ofertas publicadas</h1>
       </header>
 
@@ -51,7 +46,7 @@ function MisOfertas() {
           </div>
 
           <button className={styles.logoutBtn} onClick={cerrarSesion}>
-              Log out
+            Log out
           </button>
         </aside>
 
@@ -71,8 +66,8 @@ function MisOfertas() {
                   ofertas.map(oferta => (
                     <tr key={oferta.id}>
                       <td>{oferta.grado}</td>
-                      <td>{oferta.plazas}</td>
-                      <td>{oferta.convocatoria?.nombre}</td>
+                      <td>{oferta.totalPlazas}</td>
+                      <td>{oferta.convocatoria?.cursoAcademico}</td>
                     </tr>
                   ))
                 ) : (

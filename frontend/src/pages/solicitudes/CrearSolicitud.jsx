@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {obtenerSolicitantePorUsuario, obtenerConvocatoriaAbierta, obtenerOfertas, crearSolicitud, guardarNotas} from '../../services/solicitudService'
+import { obtenerConvocatoriaAbierta, obtenerOfertas, crearSolicitud, guardarNotas } from '../../services/solicitudService'
 import styles from './CrearSolicitud.module.css'
 import logo from '../../assets/LogoPequeño_FondoAzul_SinGorro.png'
 import avatar from '../../assets/avatar.png'
-
 
 function CrearSolicitud() {
   const navigate = useNavigate()
   const usuario = JSON.parse(localStorage.getItem('usuario'))
 
-  const [solicitante, setSolicitante] = useState(null)
   const [convocatoria, setConvocatoria] = useState(null)
   const [ofertas, setOfertas] = useState([])
   const [prioridad1, setPrioridad1] = useState('')
@@ -44,45 +42,28 @@ function CrearSolicitud() {
     cargarDatos()
   }, [])
 
-
   const cargarDatos = async () => {
     try {
       setError('')
-
-      const resSolicitante = await obtenerSolicitantePorUsuario(usuario.id)
-      setSolicitante(resSolicitante.data)
-
       const resConvocatoria = await obtenerConvocatoriaAbierta()
       setConvocatoria(resConvocatoria.data)
 
       const resOfertas = await obtenerOfertas(resConvocatoria.data.id)
-      console.log('resOfertas completa:', resOfertas)
-      console.log('resOfertas.data:', resOfertas.data)
-
-      let datos = resOfertas.data
-      if (typeof datos === 'string') {
-        datos = JSON.parse(datos)
-    }
       if (Array.isArray(resOfertas.data)) {
-        const ofertasLimpias = resOfertas.data.map((oferta) => ({
-          id: oferta.id,
-          grado: oferta.grado,
-          universidadNombre: oferta.universidad?.nombre || ''
-        }))
-
-        setOfertas(ofertasLimpias)
-        setError('')
+        setOfertas(resOfertas.data.map(o => ({
+          id: o.id,
+          grado: o.grado,
+          universidadNombre: o.universidad?.nombre || ''
+        })))
       } else {
         setOfertas([])
         setError('No se han podido cargar las ofertas correctamente')
-      } 
-
+      }
     } catch (err) {
       setError(err.response?.data || 'Error al cargar los datos')
       setOfertas([])
     }
   }
-
 
   const handleNotaChange = (index, value) => {
     const nuevasNotas = [...notas]
@@ -109,16 +90,12 @@ function CrearSolicitud() {
         return
       }
 
-      const idsSeleccionados = [prioridad1, prioridad2, prioridad3]
-        .filter((id) => id !== '')
-
+      const idsSeleccionados = [prioridad1, prioridad2, prioridad3].filter(id => id !== '')
       if (idsSeleccionados.length === 0) {
         setError('Debes seleccionar al menos una opción')
         return
       }
-
-      const idsUnicos = new Set(idsSeleccionados)
-      if (idsUnicos.size !== idsSeleccionados.length) {
+      if (new Set(idsSeleccionados).size !== idsSeleccionados.length) {
         setError('No puedes repetir el mismo grado en varias prioridades')
         return
       }
@@ -128,15 +105,13 @@ function CrearSolicitud() {
         { asignatura: especifica1.asignatura, nota: Number(especifica1.nota) },
         { asignatura: especifica2.asignatura, nota: Number(especifica2.nota) },
       ]
-      await guardarNotas(solicitante.id, todasLasNotas)
+      await guardarNotas(usuario.id, todasLasNotas)
 
-      const solicitud = {
-        solicitante: { id: solicitante.id },
-        convocatoria: { id: convocatoria.id },
-        preferencias: idsSeleccionados.map((id) => ({ id: Number(id) }))
-      }
-
-      await crearSolicitud(solicitud)
+      await crearSolicitud(
+        usuario.id,
+        convocatoria.id,
+        idsSeleccionados.map(id => Number(id))
+      )
 
       setMensaje('Solicitud enviada correctamente')
       setPrioridad1('')
@@ -147,17 +122,15 @@ function CrearSolicitud() {
     }
   }
 
-
   const cerrarSesion = () => {
-     localStorage.removeItem('usuario')
-     navigate('/')
+    localStorage.removeItem('usuario')
+    navigate('/')
   }
-
 
   const renderOpciones = () => (
     <>
       <option value="">Selecciona un grado</option>
-      {ofertas.map((oferta) => (
+      {ofertas.map(oferta => (
         <option key={oferta.id} value={oferta.id}>
           {oferta.grado} ({oferta.universidadNombre})
         </option>
@@ -165,39 +138,21 @@ function CrearSolicitud() {
     </>
   )
 
-    return (
+  return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img
-          src={logo}
-          alt="EduPlazas"
-          className={styles.logoImg}
-          onClick={() => navigate('/')}
-        />
+        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
         <h1 className={styles.tituloHeader}>Nueva solicitud</h1>
       </header>
 
       <div className={styles.content}>
         <aside className={styles.sidebar}>
           <div className={styles.userBox}>
-            <img
-              src={avatar}
-              alt="EduPlazas"
-              className={styles.avatar}
-            />
+            <img src={avatar} alt="EduPlazas" className={styles.avatar} />
             <p className={styles.email}>{usuario?.email}</p>
           </div>
-          
-          <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
-            Volver
-          </button>
-
-
-          <button className={styles.button} onClick={cerrarSesion}>
-            Log out
-          </button>
-          
-
+          <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>Volver</button>
+          <button className={styles.button} onClick={cerrarSesion}>Log out</button>
         </aside>
 
         <main className={styles.main}>
@@ -208,10 +163,9 @@ function CrearSolicitud() {
             {mensaje && <p className={styles.success}>{mensaje}</p>}
 
             <div className={styles.formulario}>
-
               {convocatoria && (
                 <p className={styles.convocatoria}>
-                  <strong>Convocatoria abierta:</strong> {convocatoria.nombre}
+                  <strong>Convocatoria abierta:</strong> {convocatoria.cursoAcademico}
                 </p>
               )}
 
@@ -221,10 +175,7 @@ function CrearSolicitud() {
                   <label className={styles.label}>{nota.asignatura}:</label>
                   <input
                     className={styles.select}
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.01"
+                    type="number" min="0" max="10" step="0.01"
                     placeholder="0 - 10"
                     value={nota.nota}
                     onChange={(e) => handleNotaChange(index, e.target.value)}
@@ -234,81 +185,46 @@ function CrearSolicitud() {
 
               <div>
                 <label className={styles.label}>Materia específica 1:</label>
-                <select
-                  className={styles.select}
-                  value={especifica1.asignatura}
-                  onChange={(e) => setEspecifica1({ ...especifica1, asignatura: e.target.value })}
-                >
+                <select className={styles.select} value={especifica1.asignatura}
+                  onChange={(e) => setEspecifica1({ ...especifica1, asignatura: e.target.value })}>
                   <option value="">Selecciona asignatura</option>
                   {ASIGNATURAS_ESPECIFICAS.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
-                <input
-                  className={styles.select}
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.01"
-                  placeholder="0 - 10"
-                  value={especifica1.nota}
-                  onChange={(e) => setEspecifica1({ ...especifica1, nota: e.target.value })}
-                />
+                <input className={styles.select} type="number" min="0" max="10" step="0.01"
+                  placeholder="0 - 10" value={especifica1.nota}
+                  onChange={(e) => setEspecifica1({ ...especifica1, nota: e.target.value })} />
               </div>
 
               <div>
                 <label className={styles.label}>Materia específica 2:</label>
-                <select
-                  className={styles.select}
-                  value={especifica2.asignatura}
-                  onChange={(e) => setEspecifica2({ ...especifica2, asignatura: e.target.value })}
-                >
+                <select className={styles.select} value={especifica2.asignatura}
+                  onChange={(e) => setEspecifica2({ ...especifica2, asignatura: e.target.value })}>
                   <option value="">Selecciona asignatura</option>
                   {ASIGNATURAS_ESPECIFICAS.map(a => <option key={a} value={a}>{a}</option>)}
                 </select>
-                <input
-                  className={styles.select}
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.01"
-                  placeholder="0 - 10"
-                  value={especifica2.nota}
-                  onChange={(e) => setEspecifica2({ ...especifica2, nota: e.target.value })}
-                />
+                <input className={styles.select} type="number" min="0" max="10" step="0.01"
+                  placeholder="0 - 10" value={especifica2.nota}
+                  onChange={(e) => setEspecifica2({ ...especifica2, nota: e.target.value })} />
               </div>
 
               <label className={styles.label}>Grado de prioridad 1:</label>
-              <select
-                className={styles.select}
-                value={prioridad1}
-                onChange={(e) => setPrioridad1(e.target.value)}
-              >
+              <select className={styles.select} value={prioridad1} onChange={(e) => setPrioridad1(e.target.value)}>
                 {renderOpciones()}
               </select>
 
               <label className={styles.label}>Grado de prioridad 2:</label>
-              <select
-                className={styles.select}
-                value={prioridad2}
-                onChange={(e) => setPrioridad2(e.target.value)}
-              >
+              <select className={styles.select} value={prioridad2} onChange={(e) => setPrioridad2(e.target.value)}>
                 {renderOpciones()}
               </select>
 
               <label className={styles.label}>Grado de prioridad 3:</label>
-              <select
-                className={styles.select}
-                value={prioridad3}
-                onChange={(e) => setPrioridad3(e.target.value)}
-              >
+              <select className={styles.select} value={prioridad3} onChange={(e) => setPrioridad3(e.target.value)}>
                 {renderOpciones()}
               </select>
             </div>
 
             <div className={styles.footerButtons}>
-              <button
-                className={styles.primaryButton}
-                onClick={handleEnviarSolicitud}
-              >
+              <button className={styles.primaryButton} onClick={handleEnviarSolicitud}>
                 Enviar
               </button>
             </div>
@@ -318,4 +234,5 @@ function CrearSolicitud() {
     </div>
   )
 }
+
 export default CrearSolicitud

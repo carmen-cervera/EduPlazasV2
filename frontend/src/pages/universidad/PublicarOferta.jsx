@@ -9,7 +9,7 @@ function PublicarOferta() {
   const usuario = JSON.parse(localStorage.getItem('usuario'))
 
   const [grado, setGrado] = useState('')
-  const [plazas, setPlazas] = useState('')
+  const [totalPlazas, setTotalPlazas] = useState('')
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
   const [criterios, setCriterios] = useState([{ asignatura: '', peso: '' }])
@@ -49,7 +49,7 @@ function PublicarOferta() {
       setError('El nombre del grado es obligatorio')
       return
     }
-    if (!plazas || parseInt(plazas) <= 0) {
+    if (!totalPlazas || parseInt(totalPlazas) <= 0) {
       setError('El número de plazas debe ser mayor que 0')
       return
     }
@@ -63,10 +63,15 @@ function PublicarOferta() {
     }
 
     try {
-      await publicarOferta(usuario.id, grado.trim(), parseInt(plazas), criteriosValidos.map(c => ({ asignatura: c.asignatura, peso: Number(c.peso) })))
+      await publicarOferta(
+        usuario.id,
+        grado.trim(),
+        parseInt(totalPlazas),
+        criteriosValidos.map(c => ({ asignatura: c.asignatura, peso: Number(c.peso) }))
+      )
       setExito('Oferta publicada correctamente')
       setGrado('')
-      setPlazas('')
+      setTotalPlazas('')
       setCriterios([{ asignatura: '', peso: '' }])
     } catch (err) {
       setError(err.response?.data || 'Error al publicar la oferta')
@@ -81,12 +86,7 @@ function PublicarOferta() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img
-          src={logo}
-          alt="EduPlazas"
-          className={styles.logoImg}
-          onClick={() => navigate('/')}
-        />
+        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
         <h1 className={styles.tituloHeader}>Publicar oferta</h1>
       </header>
 
@@ -137,8 +137,8 @@ function PublicarOferta() {
                   type="number"
                   placeholder="Ej: 120"
                   min="1"
-                  value={plazas}
-                  onChange={e => setPlazas(e.target.value)}
+                  value={totalPlazas}
+                  onChange={e => setTotalPlazas(e.target.value)}
                 />
               </div>
 
@@ -164,7 +164,8 @@ function PublicarOferta() {
                       <option value="0.2">0.2</option>
                     </select>
                     {criterios.length > 1 && (
-                      <button type="button" className={styles.btnEliminar} onClick={() => eliminarCriterio(index)}>✕</button>
+                      <button type="button" className={styles.btnEliminar}
+                        onClick={() => eliminarCriterio(index)}>✕</button>
                     )}
                   </div>
                 ))}

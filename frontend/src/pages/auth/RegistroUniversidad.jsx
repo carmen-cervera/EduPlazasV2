@@ -6,9 +6,9 @@ import logo from '../../assets/LogoGrande_FondoBlanco.png'
 
 function RegistroUniversidad() {
   const [form, setForm] = useState({
-    nombreContacto: '', apellidosContacto: '',
-    email: '', password: '', confirmPassword: '',
-    universidadId: ''
+    nombre: '', apellidos: '',
+    emailInstitucional: '', password: '', confirmPassword: '',
+    dni: '', universidadId: ''
   })
   const [universidades, setUniversidades] = useState([])
   const [error, setError] = useState('')
@@ -32,10 +32,11 @@ function RegistroUniversidad() {
     }
     try {
       await registrarUniversidad({
-        nombreContacto: form.nombreContacto,
-        apellidosContacto: form.apellidosContacto,
-        email: form.email,
+        nombre: form.nombre,
+        apellidos: form.apellidos,
+        emailInstitucional: form.emailInstitucional,
         password: form.password,
+        dni: form.dni,
         universidadId: form.universidadId
       })
       setExito(true)
@@ -56,11 +57,11 @@ function RegistroUniversidad() {
   return (
     <div className={styles.fondo} style={{ backgroundImage: "url('https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1600')" }}>
       <div className={styles.card}>
-      <img
-        src={logo}
-        alt="EduPlazas"
-        className={styles.logoImg}
-        onClick={() => navigate('/')}
+        <img
+          src={logo}
+          alt="EduPlazas"
+          className={styles.logoImg}
+          onClick={() => navigate('/')}
         />
 
         <h2 className={styles.titulo}>Sign in:</h2>
@@ -69,15 +70,19 @@ function RegistroUniversidad() {
         <div className={styles.grid}>
           <div>
             <label className={styles.label}>Nombre</label>
-            <input className={styles.input} type="text" name="nombreContacto" value={form.nombreContacto} onChange={handleChange} />
+            <input className={styles.input} type="text" name="nombre" value={form.nombre} onChange={handleChange} />
           </div>
           <div>
             <label className={styles.label}>Apellidos</label>
-            <input className={styles.input} type="text" name="apellidosContacto" value={form.apellidosContacto} onChange={handleChange} />
+            <input className={styles.input} type="text" name="apellidos" value={form.apellidos} onChange={handleChange} />
+          </div>
+          <div>
+            <label className={styles.label}>DNI</label>
+            <input className={styles.input} type="text" name="dni" value={form.dni} onChange={handleChange} />
           </div>
           <div>
             <label className={styles.label}>Email universitario</label>
-            <input className={styles.input} type="email" name="email" value={form.email} onChange={handleChange} />
+            <input className={styles.input} type="email" name="emailInstitucional" value={form.emailInstitucional} onChange={handleChange} />
           </div>
           <div>
             <label className={styles.label}>Universidad</label>

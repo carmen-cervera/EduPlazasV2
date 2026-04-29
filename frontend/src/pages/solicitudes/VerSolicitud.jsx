@@ -1,18 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerVerSolicitud } from '../../services/solicitudService'
+import { obtenerMiAsignacion } from '../../services/asignacionService'
 import styles from './VerSolicitud.module.css'
 import logo from '../../assets/LogoPequeño_FondoAzul_SinGorro.png'
 import avatar from '../../assets/avatar.png'
-import { obtenerMiAsignacion } from '../../services/asignacionService'
-
 
 function VerSolicitud() {
   const navigate = useNavigate()
   const usuario = JSON.parse(localStorage.getItem('usuario'))
 
-  const [asignacion, setAsignacion] = useState(null)
   const [solicitud, setSolicitud] = useState(null)
+  const [asignacion, setAsignacion] = useState(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -32,7 +31,7 @@ function VerSolicitud() {
     try {
       const resAsignacion = await obtenerMiAsignacion(usuario.id)
       setAsignacion(resAsignacion.data)
-    } catch (err) {
+    } catch {
       setAsignacion(null)
     }
   }
@@ -45,48 +44,27 @@ function VerSolicitud() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img
-          src={logo}
-          alt="EduPlazas"
-          className={styles.logoImg}
-          onClick={() => navigate('/')}
-        />
+        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
         <h1 className={styles.tituloHeader}>Mi solicitud</h1>
       </header>
 
       <div className={styles.content}>
         <aside className={styles.sidebar}>
           <div className={styles.userBox}>
-            <img
-              src={avatar}
-              alt="EduPlazas"
-              className={styles.avatar}
-            />
+            <img src={avatar} alt="EduPlazas" className={styles.avatar} />
             <p className={styles.user}>{usuario?.nombre || usuario?.email}</p>
           </div>
 
           <div className={styles.menu}>
-            <button
-              className={styles.button}
-              onClick={() => navigate('/estudiante/grados')}
-            >
+            <button className={styles.button} onClick={() => navigate('/estudiante/grados')}>
               Explorar grados
             </button>
-
-            <button
-              className={styles.button}
-              onClick={() => navigate('/estudiante/solicitud')}
-            >
+            <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
               Nueva solicitud
             </button>
-
-            <button 
-              className={styles.button} 
-              onClick={() => navigate('/estudiante/inicio')}
-            >
+            <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
               Volver
             </button>
-
           </div>
 
           <button className={styles.button} onClick={cerrarSesion}>
@@ -106,22 +84,27 @@ function VerSolicitud() {
                     <span className={styles.estado}>{solicitud.estado}</span>
                   </p>
                   <p>
-                    <strong>Convocatoria:</strong> {solicitud.convocatoria?.nombre}
+                    <strong>Convocatoria:</strong> {solicitud.convocatoria?.cursoAcademico}
+                  </p>
+                  <p>
+                    <strong>Fecha de presentación:</strong> {solicitud.fechaPresentacion}
                   </p>
                 </div>
 
                 <h2 className={styles.sectionTitle}>Preferencias enviadas</h2>
-
                 <div className={styles.listaPreferencias}>
-                  {solicitud.preferencias?.map((oferta, index) => (
-                    <div key={oferta.id} className={styles.preferenciaItem}>
-                      <p className={styles.prioridad}>Prioridad {index + 1}</p>
-                      <p className={styles.grado}>{oferta.grado}</p>
-                      <p className={styles.universidad}>
-                        {oferta.universidad?.nombre}
-                      </p>
-                    </div>
-                  ))}
+                  {solicitud.preferencias
+                    ?.slice()
+                    .sort((a, b) => a.ordenPreferencia - b.ordenPreferencia)
+                    .map(preferencia => (
+                      <div key={preferencia.id} className={styles.preferenciaItem}>
+                        <p className={styles.prioridad}>Prioridad {preferencia.ordenPreferencia}</p>
+                        <p className={styles.grado}>{preferencia.oferta?.grado}</p>
+                        <p className={styles.universidad}>
+                          {preferencia.oferta?.universidad?.nombre}
+                        </p>
+                      </div>
+                    ))}
                 </div>
 
                 <h2 className={styles.sectionTitle}>Resultado de asignación</h2>
@@ -136,7 +119,6 @@ function VerSolicitud() {
                     <p>Lo sentimos, no has obtenido plaza en esta convocatoria.</p>
                   )}
                 </div>
-
               </>
             )}
           </div>
