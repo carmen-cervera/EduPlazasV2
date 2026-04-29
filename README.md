@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # EduPlazas
 
 Plataforma SaaS para la gestión de admisiones universitarias en Madrid, desarrollada como proyecto académico para la asignatura ISST.
@@ -69,3 +70,6 @@ Disponible en `http://localhost:5173`
 - Luis de la Fuente Martínez
 
 Proyecto desarrollado en equipo siguiendo metodología Scrum.
+=======
+# EduPlazasV2
+>>>>>>> ff8485c479ea5b68295ce2c6406714c089410511
