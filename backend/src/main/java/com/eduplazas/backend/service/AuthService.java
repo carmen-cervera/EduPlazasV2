@@ -1,11 +1,7 @@
 package com.eduplazas.backend.service;
 
-import com.eduplazas.backend.model.Universidad;
-import com.eduplazas.backend.model.Usuario;
-import com.eduplazas.backend.model.Solicitante;
-import com.eduplazas.backend.repository.UniversidadRepository;
-import com.eduplazas.backend.repository.UsuarioRepository;
-import com.eduplazas.backend.repository.SolicitanteRepository;
+import com.eduplazas.backend.model.*;
+import com.eduplazas.backend.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
@@ -14,110 +10,97 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AuthService {
 
-    private final UsuarioRepository usuarioRepository;
+    private final EstudianteRepository estudianteRepository;
+    private final RepresentanteUniversidadRepository representanteRepository;
     private final UniversidadRepository universidadRepository;
-    private final SolicitanteRepository solicitanteRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AuthService(UsuarioRepository usuarioRepository,
-                       UniversidadRepository universidadRepository,
-                       SolicitanteRepository solicitanteRepository) {
-        this.usuarioRepository = usuarioRepository;
+    public AuthService(EstudianteRepository estudianteRepository,
+                       RepresentanteUniversidadRepository representanteRepository,
+                       UniversidadRepository universidadRepository) {
+        this.estudianteRepository = estudianteRepository;
+        this.representanteRepository = representanteRepository;
         this.universidadRepository = universidadRepository;
-        this.solicitanteRepository = solicitanteRepository;
     }
 
     // REGISTRO ESTUDIANTE
     public String registrarEstudiante(String nombre, String apellidos, String email,
-                                       String password, String dni, String idEvau) throws Exception {
-
-        // Email ya registrado
-        if (usuarioRepository.existsByEmail(email)) {
+                                      String password, String dni, String idEvau) throws Exception {
+        if (estudianteRepository.existsByEmail(email)) {
             return "ERROR: El email ya está registrado";
         }
-
-        // DNI ya registrado
-        if (usuarioRepository.existsByDni(dni)) {
-            return "ERROR: El DNI ya está registrado";
-        }
-
-        // ID EvAU ya registrado
-        if (usuarioRepository.existsByIdEvau(idEvau)) {
+        if (estudianteRepository.existsByIdEvau(idEvau)) {
             return "ERROR: El ID de EvAU ya está registrado";
         }
-
-        // Validar que el ID EvAU coincide con nombre y apellidos en el archivo JSON
         if (!validarEvau(idEvau, nombre, apellidos)) {
             return "ERROR: El ID de EvAU no coincide con el nombre y apellidos proporcionados";
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setNombre(nombre);
-        usuario.setApellidos(apellidos);
-        usuario.setEmail(email);
-        usuario.setPassword(passwordEncoder.encode(password));
-        usuario.setDni(dni);
-        usuario.setIdEvau(idEvau);
-        usuario.setRol("ESTUDIANTE");
+        Estudiante estudiante = new Estudiante();
+        estudiante.setNombre(nombre);
+        estudiante.setApellidos(apellidos);
+        estudiante.setEmail(email);
+        estudiante.setPassword(passwordEncoder.encode(password));
+        estudiante.setDni(dni);
+        estudiante.setIdEvau(idEvau);
+        estudiante.setNotaBase(0.0);
 
-        usuarioRepository.save(usuario);
-
-        Solicitante solicitante = new Solicitante();
-        solicitante.setNombre(nombre);
-        solicitante.setApellidos(apellidos);
-        solicitante.setEmail(email);
-        solicitante.setUsuario(usuario);
-        solicitante.setNotaBase(0.0); //por el momento se inicializa a 0, se actualizará al calcular la nota final
-        
-        solicitanteRepository.save(solicitante);
-        
+        estudianteRepository.save(estudiante);
         return "OK";
     }
 
-    // REGISTRO UNIVERSIDAD
-    public String registrarUniversidad(String nombreContacto, String apellidosContacto,
-                                        String email, String password,
-                                        Long universidadId) throws Exception {
-
-        // Email ya registrado
-        if (usuarioRepository.existsByEmail(email)) {
+    // REGISTRO REPRESENTANTE UNIVERSIDAD
+    public String registrarRepresentante(String nombre, String apellidos,
+                                         String emailInstitucional, String password,
+                                         String dni, Long universidadId) throws Exception {
+        if (representanteRepository.existsByEmailInstitucional(emailInstitucional)) {
             return "ERROR: El email ya está registrado";
         }
-
-        // Validar extensión del email
-        if (!validarEmailUniversidad(email)) {
+        if (!validarEmailUniversidad(emailInstitucional)) {
             return "ERROR: El email no tiene una extensión universitaria válida";
         }
 
-        // Comprobar que la universidad existe
         Universidad universidad = universidadRepository.findById(universidadId).orElse(null);
         if (universidad == null) {
             return "ERROR: Universidad no encontrada";
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setNombreContacto(nombreContacto);
-        usuario.setApellidosContacto(apellidosContacto);
-        usuario.setEmail(email);
-        usuario.setPassword(passwordEncoder.encode(password));
-        usuario.setRol("UNIVERSIDAD");
-        usuario.setUniversidad(universidad);
+        RepresentanteUniversidad representante = new RepresentanteUniversidad();
+        representante.setNombre(nombre);
+        representante.setApellidos(apellidos);
+        representante.setEmailInstitucional(emailInstitucional);
+        representante.setPassword(passwordEncoder.encode(password));
+        representante.setDni(dni);
+        representante.setUniversidad(universidad);
 
-        usuarioRepository.save(usuario);
+        representanteRepository.save(representante);
         return "OK";
     }
 
     // LOGIN
-    public Usuario login(String email, String password) {
-        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
-        if (usuario == null) return null;
-        if (!passwordEncoder.matches(password, usuario.getPassword())) return null;
-        return usuario;
+    public Object login(String email, String password) {
+        // Intentar como estudiante
+        Optional<Estudiante> estudiante = estudianteRepository.findByEmail(email);
+        if (estudiante.isPresent()) {
+            if (!passwordEncoder.matches(password, estudiante.get().getPassword())) return null;
+            return estudiante.get();
+        }
+
+        // Intentar como representante
+        Optional<RepresentanteUniversidad> representante =
+                representanteRepository.findByEmailInstitucional(email);
+        if (representante.isPresent()) {
+            if (!passwordEncoder.matches(password, representante.get().getPassword())) return null;
+            return representante.get();
+        }
+
+        return null;
     }
 
     // Validar ID EvAU contra el archivo JSON

@@ -10,15 +10,16 @@ import java.util.List;
 public class OfertaService {
 
     private final OfertaRepository ofertaRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final RepresentanteUniversidadRepository representanteRepository;
     private final ConvocatoriaRepository convocatoriaRepository;
     private final CriterioAdmisionRepository criterioAdmisionRepository;
 
-    public OfertaService(OfertaRepository ofertaRepository, UsuarioRepository usuarioRepository,
+    public OfertaService(OfertaRepository ofertaRepository,
+                         RepresentanteUniversidadRepository representanteRepository,
                          ConvocatoriaRepository convocatoriaRepository,
                          CriterioAdmisionRepository criterioAdmisionRepository) {
         this.ofertaRepository = ofertaRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.representanteRepository = representanteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.criterioAdmisionRepository = criterioAdmisionRepository;
     }
@@ -31,52 +32,46 @@ public class OfertaService {
         return ofertaRepository.findById(id).orElse(null);
     }
 
-    public Oferta guardar(Oferta oferta) {
-        return ofertaRepository.save(oferta);
-    }
-    //Será lo que se ejecuta cuando una universidad rellena el formulario de publicar oferta.
-public Oferta publicarOferta(Long usuarioId, String grado, int plazas, List<CriterioAdmision> criterios) {
-    Usuario usuario = usuarioRepository.findById(usuarioId)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public Oferta publicarOferta(Long representanteId, String grado,
+                                  int totalPlazas, List<CriterioAdmision> criterios) {
 
-    if (!"UNIVERSIDAD".equals(usuario.getRol())) {
-        throw new RuntimeException("Solo las universidades pueden publicar ofertas");
-    }
+        RepresentanteUniversidad representante = representanteRepository.findById(representanteId)
+                .orElseThrow(() -> new RuntimeException("Representante no encontrado"));
 
-    if (usuario.getUniversidad() == null) {
-        throw new RuntimeException("El usuario no tiene universidad asociada");
-    }
-
-    Convocatoria convocatoria = convocatoriaRepository.findByEstado("ABIERTA")
-            .orElseThrow(() -> new RuntimeException("No hay ninguna convocatoria abierta"));
-
-    Oferta oferta = new Oferta();
-    oferta.setGrado(grado);
-    oferta.setPlazas(plazas);
-    oferta.setUniversidad(usuario.getUniversidad());
-    oferta.setConvocatoria(convocatoria);
-
-    Oferta ofertaGuardada = ofertaRepository.save(oferta);
-
-    if (criterios != null) {
-        for (CriterioAdmision criterio : criterios) {
-            criterio.setOferta(ofertaGuardada);
-            criterioAdmisionRepository.save(criterio);
+        if (representante.getUniversidad() == null) {
+            throw new RuntimeException("El representante no tiene universidad asociada");
         }
+
+        Convocatoria convocatoria = convocatoriaRepository
+                .findByEstado(EstadoConvocatoriaEnum.ABIERTA)
+                .orElseThrow(() -> new RuntimeException("No hay ninguna convocatoria abierta"));
+
+        Oferta oferta = new Oferta();
+        oferta.setGrado(grado);
+        oferta.setTotalPlazas(totalPlazas);
+        oferta.setUniversidad(representante.getUniversidad());
+        oferta.setConvocatoria(convocatoria);
+
+        Oferta ofertaGuardada = ofertaRepository.save(oferta);
+
+        if (criterios != null) {
+            for (CriterioAdmision criterio : criterios) {
+                criterio.setOferta(ofertaGuardada);
+                criterioAdmisionRepository.save(criterio);
+            }
+        }
+
+        return ofertaGuardada;
     }
 
-    return ofertaGuardada;
+    public List<Oferta> obtenerPorRepresentante(Long representanteId) {
+        RepresentanteUniversidad representante = representanteRepository.findById(representanteId)
+                .orElseThrow(() -> new RuntimeException("Representante no encontrado"));
+        if (representante.getUniversidad() == null) return List.of();
+        Long universidadId = representante.getUniversidad().getId();
+        return ofertaRepository.findAll().stream()
+                .filter(o -> o.getUniversidad() != null &&
+                             o.getUniversidad().getId().equals(universidadId))
+                .toList();
+    }
 }
-
-//Para que la universidad solo vea los grados que ella tiene publicados
-public List<Oferta> obtenerPorUsuario(Long usuarioId) {
-    Usuario usuario = usuarioRepository.findById(usuarioId)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-    if (usuario.getUniversidad() == null) return List.of();
-    Long universidadId = usuario.getUniversidad().getId();
-    return ofertaRepository.findAll().stream()
-            .filter(o -> o.getUniversidad() != null && o.getUniversidad().getId().equals(universidadId))
-            .toList();
-}
-}
-

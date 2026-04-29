@@ -1,139 +1,113 @@
 package com.eduplazas.backend.service;
 
-import com.eduplazas.backend.model.Convocatoria;
-import com.eduplazas.backend.model.NotaAsignatura;
-import com.eduplazas.backend.model.Oferta;
-import com.eduplazas.backend.model.Solicitante;
-import com.eduplazas.backend.model.Solicitud;
-import com.eduplazas.backend.repository.ConvocatoriaRepository;
-import com.eduplazas.backend.repository.NotaAsignaturaRepository;
-import com.eduplazas.backend.repository.OfertaRepository;
-import com.eduplazas.backend.repository.SolicitanteRepository;
-import com.eduplazas.backend.repository.SolicitudRepository;
+import com.eduplazas.backend.model.*;
+import com.eduplazas.backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
-
-
 
 @Service
 public class SolicitudService {
 
     private final SolicitudRepository solicitudRepository;
-    private final SolicitanteRepository solicitanteRepository;
+    private final EstudianteRepository estudianteRepository;
     private final ConvocatoriaRepository convocatoriaRepository;
     private final OfertaRepository ofertaRepository;
     private final NotaAsignaturaRepository notaAsignaturaRepository;
+    private final PreferenciaRepository preferenciaRepository;
 
     public SolicitudService(SolicitudRepository solicitudRepository,
-                            SolicitanteRepository solicitanteRepository,
+                            EstudianteRepository estudianteRepository,
                             ConvocatoriaRepository convocatoriaRepository,
                             OfertaRepository ofertaRepository,
-                            NotaAsignaturaRepository notaAsignaturaRepository) {
+                            NotaAsignaturaRepository notaAsignaturaRepository,
+                            PreferenciaRepository preferenciaRepository) {
         this.solicitudRepository = solicitudRepository;
-        this.solicitanteRepository = solicitanteRepository;
+        this.estudianteRepository = estudianteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.ofertaRepository = ofertaRepository;
         this.notaAsignaturaRepository = notaAsignaturaRepository;
+        this.preferenciaRepository = preferenciaRepository;
     }
-    //CREACIÓN DE LA SOLICITUD
-    public Solicitud crearSolicitud(Solicitud solicitudRecibida) {
-        //
-        if(solicitudRecibida.getSolicitante() == null || solicitudRecibida.getSolicitante().getId() == null){
-            throw new RuntimeException("ERROR: Debes indicar que eres el solicitante");
-        }
-        //
-        if (solicitudRecibida.getConvocatoria() == null || solicitudRecibida.getConvocatoria().getId() == null) {
-            throw new RuntimeException("ERROR: Debes indicar la convocatoria");
-        }
-        //
-        if (solicitudRecibida.getPreferencias() == null || solicitudRecibida.getPreferencias().isEmpty()) {
-            throw new RuntimeException("ERROR: Debes seleccionar al menos una oferta");
-        }
 
-        Solicitante solicitante = solicitanteRepository.findById(solicitudRecibida.getSolicitante().getId())
-                .orElseThrow(() -> new RuntimeException("ERROR: Solicitante no encontrado"));
+    @Transactional
+    public Solicitud crearSolicitud(Long estudianteId, Long convocatoriaId,
+                                    List<Long> ofertaIdsOrdenadas) {
 
-        Convocatoria convocatoria = convocatoriaRepository.findById(solicitudRecibida.getConvocatoria().getId())
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new RuntimeException("ERROR: Estudiante no encontrado"));
+
+        Convocatoria convocatoria = convocatoriaRepository.findById(convocatoriaId)
                 .orElseThrow(() -> new RuntimeException("ERROR: Convocatoria no encontrada"));
 
-        if (!"ABIERTA".equalsIgnoreCase(convocatoria.getEstado())) {
+        if (convocatoria.getEstado() != EstadoConvocatoriaEnum.ABIERTA) {
             throw new RuntimeException("La convocatoria no está abierta");
         }
 
-        boolean existeSolicitud = solicitudRepository
-                .findBySolicitanteIdAndConvocatoriaId(solicitante.getId(), convocatoria.getId())
-                .isPresent();
-
-        if (existeSolicitud) {
-            throw new RuntimeException("No puedes enviar más de una solicitud para una convocatoria");
+        if (solicitudRepository.findByEstudianteIdAndConvocatoriaId(
+                estudianteId, convocatoriaId).isPresent()) {
+            throw new RuntimeException("Ya tienes una solicitud para esta convocatoria");
         }
 
-        List<Long> idsOfertas = solicitudRecibida.getPreferencias()
-                .stream()
-                .map(Oferta::getId)
-                .collect(Collectors.toList());
+        if (ofertaIdsOrdenadas == null || ofertaIdsOrdenadas.isEmpty()) {
+            throw new RuntimeException("ERROR: Debes seleccionar al menos una oferta");
+        }
 
-        Set<Long> idsSinDuplicados = new HashSet<>(idsOfertas);
-        if (idsOfertas.size() != idsSinDuplicados.size()) {
+        Set<Long> sinDuplicados = new HashSet<>(ofertaIdsOrdenadas);
+        if (sinDuplicados.size() != ofertaIdsOrdenadas.size()) {
             throw new RuntimeException("No puede haber grados repetidos en la solicitud");
         }
 
-        List<Oferta> ofertasRaw = ofertaRepository.findAllById(idsOfertas);
-        Map<Long, Oferta> ofertasMap = ofertasRaw.stream()
-                .collect(Collectors.toMap(Oferta::getId, o -> o));
-        List<Oferta> ofertas = idsOfertas.stream()
-                .map(ofertasMap::get)
-                .filter(java.util.Objects::nonNull)
-                .collect(Collectors.toList());
+        Solicitud solicitud = new Solicitud();
+        solicitud.setEstudiante(estudiante);
+        solicitud.setConvocatoria(convocatoria);
+        solicitud.setEstado(EstadoSolicitudEnum.ENTREGADA);
+        solicitud.setFechaPresentacion(LocalDate.now());
+        solicitudRepository.save(solicitud);
 
-        for (Oferta oferta : ofertas) {
-            if (!oferta.getConvocatoria().getId().equals(convocatoria.getId())) {
-                throw new RuntimeException("Todas las ofertas deben pertenecer a la convocatoria abierta");
+        for (int i = 0; i < ofertaIdsOrdenadas.size(); i++) {
+            Oferta oferta = ofertaRepository.findById(ofertaIdsOrdenadas.get(i))
+                    .orElseThrow(() -> new RuntimeException("Oferta no encontrada"));
+
+            if (!oferta.getConvocatoria().getId().equals(convocatoriaId)) {
+                throw new RuntimeException("Todas las ofertas deben pertenecer a la convocatoria");
             }
+
+            Preferencia preferencia = new Preferencia();
+            preferencia.setSolicitud(solicitud);
+            preferencia.setOferta(oferta);
+            preferencia.setOrdenPreferencia(i + 1);
+            preferenciaRepository.save(preferencia);
         }
 
-        Solicitud nuevaSolicitud = new Solicitud();
-        nuevaSolicitud.setSolicitante(solicitante);
-        nuevaSolicitud.setConvocatoria(convocatoria);
-        nuevaSolicitud.setEstado("ENVIADA");
-        nuevaSolicitud.setPreferencias(ofertas);
-
-        return solicitudRepository.save(nuevaSolicitud);
-
-
-    }
-    public Solicitante obtenerSolicitantePorUsuario(Long usuarioId) {
-        return solicitanteRepository.findByUsuarioId(usuarioId).orElse(null);
+        return solicitud;
     }
 
-    public Solicitud obtenerSolicitudPorUsuario(Long usuarioId) {
-        return solicitudRepository.findBySolicitanteUsuarioId(usuarioId).orElse(null);
+    public Optional<Solicitud> obtenerPorEstudiante(Long estudianteId) {
+        return solicitudRepository.findByEstudianteId(estudianteId);
     }
 
-    public Convocatoria obtenerConvocatoriaAbierta() {
-        return convocatoriaRepository.findByEstado("ABIERTA").orElse(null);
+    public Optional<Convocatoria> obtenerConvocatoriaAbierta() {
+        return convocatoriaRepository.findByEstado(EstadoConvocatoriaEnum.ABIERTA);
     }
 
     public List<Oferta> obtenerOfertasPorConvocatoria(Long convocatoriaId) {
         return ofertaRepository.findByConvocatoriaId(convocatoriaId);
     }
 
-    private static final java.util.Set<String> ASIGNATURAS_COMUNES = java.util.Set.of(
+    private static final Set<String> ASIGNATURAS_COMUNES = Set.of(
         "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas"
     );
 
     @Transactional
-    public void guardarNotas(Long solicitanteId, List<NotaAsignatura> notas) {
-        Solicitante solicitante = solicitanteRepository.findById(solicitanteId)
-                .orElseThrow(() -> new RuntimeException("Solicitante no encontrado"));
+    public void guardarNotas(Long estudianteId, List<NotaAsignatura> notas) {
+        Estudiante estudiante = estudianteRepository.findById(estudianteId)
+                .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
 
-        notaAsignaturaRepository.deleteBySolicitanteId(solicitanteId);
+        notaAsignaturaRepository.deleteByEstudianteId(estudianteId);
 
         double notaBase = 0.0;
         for (NotaAsignatura nota : notas) {
@@ -142,11 +116,11 @@ public class SolicitudService {
             } else if (ASIGNATURAS_COMUNES.contains(nota.getAsignatura())) {
                 notaBase += nota.getNota() * 0.1;
             }
-            nota.setSolicitante(solicitante);
+            nota.setEstudiante(estudiante);
             notaAsignaturaRepository.save(nota);
         }
 
-        solicitante.setNotaBase(notaBase);
-        solicitanteRepository.save(solicitante);
+        estudiante.setNotaBase(notaBase);
+        estudianteRepository.save(estudiante);
     }
 }

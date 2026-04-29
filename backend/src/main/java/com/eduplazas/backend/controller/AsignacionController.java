@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/asignaciones")
@@ -19,29 +19,24 @@ public class AsignacionController {
         this.asignacionService = asignacionService;
     }
 
-    // Lanzar el proceso de asignación para una universidad concreta
-    @PostMapping("/procesar")
-    public ResponseEntity<String> procesarAsignaciones(@RequestParam Long universidadId) {
-        asignacionService.procesarAsignaciones(universidadId);
-        return ResponseEntity.ok("Asignación procesada correctamente");
-    }
-
-    // Ver todos los resultados de la asignación
+    // Ver todos los resultados de asignación
     @GetMapping
-    public ResponseEntity<List<Asignacion>> obtenerResultados() {
+    public ResponseEntity<List<Asignacion>> obtenerTodas() {
         return ResponseEntity.ok(asignacionService.obtenerTodas());
     }
 
- // Ver la asignación de un estudiante concreto
-    @GetMapping("/estudiante/{usuarioId}")
-    public ResponseEntity<?> obtenerMiAsignacion(@PathVariable Long usuarioId) {
-        Optional<Asignacion> asignacion = asignacionService.obtenerPorUsuario(usuarioId);
-        if (asignacion.isPresent()) {
-            return ResponseEntity.ok(asignacion.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-}
+    // Ver la asignación de un estudiante concreto
+    @GetMapping("/estudiante/{estudianteId}")
+    public ResponseEntity<?> obtenerMiAsignacion(@PathVariable Long estudianteId) {
+        return asignacionService.obtenerPorEstudiante(estudianteId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
-
+    // Ver tabla de candidatos de una oferta (con columna tienePlazaSuperior)
+    @GetMapping("/tabla-oferta/{ofertaId}")
+    public ResponseEntity<List<Map<String, Object>>> obtenerTablaOferta(
+            @PathVariable Long ofertaId) {
+        return ResponseEntity.ok(asignacionService.obtenerTablaOferta(ofertaId));
+    }
 }

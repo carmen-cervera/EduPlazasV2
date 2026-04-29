@@ -1,13 +1,10 @@
 package com.eduplazas.backend.repository;
 
 import com.eduplazas.backend.model.Usuario;
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    Optional<Usuario> findByEmail(String email);
-    boolean existsByEmail(String email);
+public interface UsuarioRepository extends CrudRepository<Usuario, Long> {
+    Optional<Usuario> findByDni(String dni);
     boolean existsByDni(String dni);
-    boolean existsByIdEvau(String idEvau);
 }

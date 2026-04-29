@@ -1,11 +1,13 @@
 package com.eduplazas.backend.controller;
 
+import com.eduplazas.backend.model.Estudiante;
+import com.eduplazas.backend.model.RepresentanteUniversidad;
 import com.eduplazas.backend.model.Universidad;
-import com.eduplazas.backend.model.Usuario;
 import com.eduplazas.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,15 +43,16 @@ public class AuthController {
         }
     }
 
-    // Registro universidad
+    // Registro representante universidad
     @PostMapping("/registro/universidad")
-    public ResponseEntity<String> registrarUniversidad(@RequestBody Map<String, String> body) {
+    public ResponseEntity<String> registrarRepresentante(@RequestBody Map<String, String> body) {
         try {
-            String resultado = authService.registrarUniversidad(
-                body.get("nombreContacto"),
-                body.get("apellidosContacto"),
-                body.get("email"),
+            String resultado = authService.registrarRepresentante(
+                body.get("nombre"),
+                body.get("apellidos"),
+                body.get("emailInstitucional"),
                 body.get("password"),
+                body.get("dni"),
                 Long.parseLong(body.get("universidadId"))
             );
             if (resultado.startsWith("ERROR")) {
@@ -65,20 +68,31 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
         try {
-            Usuario usuario = authService.login(body.get("email"), body.get("password"));
+            Object usuario = authService.login(body.get("email"), body.get("password"));
             if (usuario == null) {
                 return ResponseEntity.badRequest().body("Email o contraseña incorrectos");
             }
-            Map<String, Object> respuesta = new java.util.HashMap<>();
-            respuesta.put("id", usuario.getId());
-            respuesta.put("email", usuario.getEmail());
-            respuesta.put("rol", usuario.getRol());
-            if (usuario.getUniversidad() != null) {
-                respuesta.put("universidad", Map.of(
-                    "id", usuario.getUniversidad().getId(),
-                    "nombre", usuario.getUniversidad().getNombre()
-                ));
+
+            Map<String, Object> respuesta = new HashMap<>();
+
+            if (usuario instanceof Estudiante e) {
+                respuesta.put("id", e.getId());
+                respuesta.put("email", e.getEmail());
+                respuesta.put("rol", "ESTUDIANTE");
+                respuesta.put("nombre", e.getNombre());
+            } else if (usuario instanceof RepresentanteUniversidad r) {
+                respuesta.put("id", r.getId());
+                respuesta.put("email", r.getEmailInstitucional());
+                respuesta.put("rol", "UNIVERSIDAD");
+                respuesta.put("nombre", r.getNombre());
+                if (r.getUniversidad() != null) {
+                    respuesta.put("universidad", Map.of(
+                        "id", r.getUniversidad().getId(),
+                        "nombre", r.getUniversidad().getNombre()
+                    ));
+                }
             }
+
             return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error interno del servidor");

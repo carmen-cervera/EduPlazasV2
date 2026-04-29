@@ -1,10 +1,6 @@
 package com.eduplazas.backend.controller;
 
-import com.eduplazas.backend.model.Convocatoria;
-import com.eduplazas.backend.model.NotaAsignatura;
-import com.eduplazas.backend.model.Oferta;
-import com.eduplazas.backend.model.Solicitante;
-import com.eduplazas.backend.model.Solicitud;
+import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.service.SolicitudService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,61 +18,52 @@ public class SolicitudController {
     public SolicitudController(SolicitudService solicitudService) {
         this.solicitudService = solicitudService;
     }
-    
-    // ver el solicitante asociado al usuario 
-    @GetMapping("/solicitante/{usuarioId}")
-    public ResponseEntity<?> obtenerSolicitantePorUsuario(@PathVariable Long usuarioId) {
-        Solicitante solicitante = solicitudService.obtenerSolicitantePorUsuario(usuarioId);
-        if (solicitante == null) {
-            return ResponseEntity.badRequest().body("Solicitante no encontrado para este usuario");
-        }
-        return ResponseEntity.ok(solicitante);
-    }
 
-    // ver la convocatoria abierta
+    // Ver la convocatoria abierta
     @GetMapping("/convocatoria-abierta")
     public ResponseEntity<?> obtenerConvocatoriaAbierta() {
-        Convocatoria convocatoria = solicitudService.obtenerConvocatoriaAbierta();
-        if (convocatoria == null) {
-            return ResponseEntity.badRequest().body("No hay convocatoria abierta");
-        }
-        return ResponseEntity.ok(convocatoria);
+        return solicitudService.obtenerConvocatoriaAbierta()
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.badRequest().body("No hay convocatoria abierta"));
     }
-    // ver ofertas
+
+    // Ver ofertas de una convocatoria
     @GetMapping("/ofertas")
     public ResponseEntity<List<Oferta>> obtenerOfertas(@RequestParam Long convocatoriaId) {
         return ResponseEntity.ok(solicitudService.obtenerOfertasPorConvocatoria(convocatoriaId));
     }
 
-    //ver mi solicitud 
-    @GetMapping("/ver-solicitud/{usuarioId}")
-    public ResponseEntity<?> obtenerVerSolicitud(@PathVariable Long usuarioId) {
-        Solicitud solicitud = solicitudService.obtenerSolicitudPorUsuario(usuarioId);
-
-        if (solicitud == null) {
-            return ResponseEntity.badRequest().body("No existe ninguna solicitud para este usuario");
-        }
-
-        return ResponseEntity.ok(solicitud);
+    // Ver mi solicitud
+    @GetMapping("/ver-solicitud/{estudianteId}")
+    public ResponseEntity<?> obtenerSolicitud(@PathVariable Long estudianteId) {
+        return solicitudService.obtenerPorEstudiante(estudianteId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElse(ResponseEntity.badRequest().body("No existe ninguna solicitud para este estudiante"));
     }
 
-    // crear solicitud
+    // Crear solicitud
     @PostMapping
-    public ResponseEntity<?> crearSolicitud(@RequestBody Solicitud solicitud) {
+    public ResponseEntity<?> crearSolicitud(@RequestBody Map<String, Object> body) {
         try {
-            Solicitud nuevaSolicitud = solicitudService.crearSolicitud(solicitud);
-            return ResponseEntity.ok(nuevaSolicitud);
+            Long estudianteId = Long.valueOf(body.get("estudianteId").toString());
+            Long convocatoriaId = Long.valueOf(body.get("convocatoriaId").toString());
+            List<Long> ofertaIds = ((List<?>) body.get("ofertaIds")).stream()
+                    .map(o -> Long.valueOf(o.toString()))
+                    .toList();
+
+            Solicitud solicitud = solicitudService.crearSolicitud(estudianteId, convocatoriaId, ofertaIds);
+            return ResponseEntity.ok(solicitud);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // guardar notas EvAU del solicitante
-    @PutMapping("/solicitante/{solicitanteId}/notas")
-    public ResponseEntity<?> guardarNotas(@PathVariable Long solicitanteId,
+    // Guardar notas EvAU del estudiante
+    @PutMapping("/estudiante/{estudianteId}/notas")
+    public ResponseEntity<?> guardarNotas(@PathVariable Long estudianteId,
                                           @RequestBody List<NotaAsignatura> notas) {
         try {
-            solicitudService.guardarNotas(solicitanteId, notas);
+            solicitudService.guardarNotas(estudianteId, notas);
             return ResponseEntity.ok("Notas guardadas correctamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -20,15 +20,16 @@ public class OfertaController {
         this.ofertaService = ofertaService;
     }
 
-    //Recibe datos del formulario y llama al service para crear la oferta y guardar en la bbdd
+    // Publicar oferta (representante universidad)
     @PostMapping
     public ResponseEntity<?> publicarOferta(@RequestBody Map<String, Object> body) {
         try {
-            Long usuarioId = Long.valueOf(body.get("usuarioId").toString());
+            Long representanteId = Long.valueOf(body.get("representanteId").toString());
             String grado = body.get("grado").toString();
-            int plazas = Integer.parseInt(body.get("plazas").toString());
+            int totalPlazas = Integer.parseInt(body.get("totalPlazas").toString());
 
-            List<Map<String, Object>> criteriosRaw = (List<Map<String, Object>>) body.get("criterios");
+            List<Map<String, Object>> criteriosRaw =
+                    (List<Map<String, Object>>) body.get("criterios");
             List<CriterioAdmision> criterios = null;
             if (criteriosRaw != null) {
                 criterios = criteriosRaw.stream().map(c -> {
@@ -39,24 +40,25 @@ public class OfertaController {
                 }).toList();
             }
 
-            Oferta oferta = ofertaService.publicarOferta(usuarioId, grado, plazas, criterios);
+            Oferta oferta = ofertaService.publicarOferta(representanteId, grado,
+                    totalPlazas, criterios);
             return ResponseEntity.ok(oferta);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    //Redcibe el usuario Id y devuelve solo las ofertas de esa unviersidad.
+    // Ver ofertas de mi universidad
     @GetMapping("/mi-universidad")
-    public ResponseEntity<?> obtenerOfertasMiUniversidad(@RequestParam Long usuarioId) {
+    public ResponseEntity<?> obtenerOfertasMiUniversidad(@RequestParam Long representanteId) {
         try {
-            return ResponseEntity.ok(ofertaService.obtenerPorUsuario(usuarioId));
+            return ResponseEntity.ok(ofertaService.obtenerPorRepresentante(representanteId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    //Devuelve todas las ofertas de todas las unviersidades.
+    // Ver todas las ofertas
     @GetMapping
     public ResponseEntity<List<Oferta>> obtenerTodas() {
         return ResponseEntity.ok(ofertaService.obtenerTodas());

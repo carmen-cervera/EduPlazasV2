@@ -1,40 +1,50 @@
 package com.eduplazas.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Table(name = "solicitudes")
 public class Solicitud {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private LocalDate fechaPresentacion;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoSolicitudEnum estado;
+
     @ManyToOne
-    @JoinColumn(name = "solicitante_id")
-    private Solicitante solicitante;
+    @JoinColumn(name = "estudiante_id")
+    private Estudiante estudiante;
 
     @ManyToOne
     @JoinColumn(name = "convocatoria_id")
     private Convocatoria convocatoria;
 
-    private String estado; // ENVIADA, RESUELTA, RECLAMACION
+    @OneToMany(mappedBy = "solicitud", cascade = CascadeType.ALL)
+    private List<Preferencia> preferencias;
 
-    @ManyToMany
-    @OrderColumn(name = "orden_preferencia")
-    @JoinTable(name = "solicitud_preferencias",
-        joinColumns = @JoinColumn(name = "solicitud_id"),
-        inverseJoinColumns = @JoinColumn(name = "oferta_id"))
-    private List<Oferta> preferencias;
+    @OneToOne(mappedBy = "solicitud")
+    @JsonIgnore
+    private Asignacion asignacion;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public Solicitante getSolicitante() { return solicitante; }
-    public void setSolicitante(Solicitante solicitante) { this.solicitante = solicitante; }
+    public LocalDate getFechaPresentacion() { return fechaPresentacion; }
+    public void setFechaPresentacion(LocalDate fechaPresentacion) { this.fechaPresentacion = fechaPresentacion; }
+    public EstadoSolicitudEnum getEstado() { return estado; }
+    public void setEstado(EstadoSolicitudEnum estado) { this.estado = estado; }
+    public Estudiante getEstudiante() { return estudiante; }
+    public void setEstudiante(Estudiante estudiante) { this.estudiante = estudiante; }
     public Convocatoria getConvocatoria() { return convocatoria; }
     public void setConvocatoria(Convocatoria convocatoria) { this.convocatoria = convocatoria; }
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
-    public List<Oferta> getPreferencias() { return preferencias; }
-    public void setPreferencias(List<Oferta> preferencias) { this.preferencias = preferencias; }
+    public List<Preferencia> getPreferencias() { return preferencias; }
+    public void setPreferencias(List<Preferencia> preferencias) { this.preferencias = preferencias; }
+    public Asignacion getAsignacion() { return asignacion; }
+    public void setAsignacion(Asignacion asignacion) { this.asignacion = asignacion; }
 }

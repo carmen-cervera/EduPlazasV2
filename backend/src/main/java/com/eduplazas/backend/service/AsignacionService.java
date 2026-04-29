@@ -14,149 +14,123 @@ public class AsignacionService {
     private final SolicitudRepository solicitudRepository;
     private final AsignacionRepository asignacionRepository;
     private final OfertaRepository ofertaRepository;
-    private final UniversidadRepository universidadRepository;
+    private final PreferenciaRepository preferenciaRepository;
 
     public AsignacionService(SolicitudRepository solicitudRepository,
                              AsignacionRepository asignacionRepository,
                              OfertaRepository ofertaRepository,
-                             UniversidadRepository universidadRepository) {
+                             PreferenciaRepository preferenciaRepository) {
         this.solicitudRepository = solicitudRepository;
         this.asignacionRepository = asignacionRepository;
         this.ofertaRepository = ofertaRepository;
-        this.universidadRepository = universidadRepository;
+        this.preferenciaRepository = preferenciaRepository;
     }
 
     @Transactional
-    public void procesarAsignaciones(Long universidadId) {
+    public void procesarAsignaciones(Long convocatoriaId) {
 
-        // 1. Marcar esta universidad como lista
-        Universidad universidad = universidadRepository.findById(universidadId)
-                .orElseThrow(() -> new RuntimeException("Universidad no encontrada"));
-        universidad.setListaParaAsignar(true);
-        universidadRepository.save(universidad);
+        // 1. Obtener todas las solicitudes de la convocatoria
+        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
 
-        // 2. Obtener todas las ofertas de universidades marcadas como listas
-        List<Universidad> universidadesListas = universidadRepository.findAll().stream()
-                .filter(Universidad::isListaParaAsignar)
-                .collect(Collectors.toList());
+        // 2. Obtener todas las ofertas de la convocatoria
+        List<Oferta> ofertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
 
-        Set<Long> idsUniversidadesListas = universidadesListas.stream()
-                .map(Universidad::getId)
-                .collect(Collectors.toSet());
+        // 3. Para cada solicitud, calcular la nota ponderada por oferta
+        // notasPonderadas: estudianteId -> ofertaId -> nota
+        Map<Long, Map<Long, Double>> notasPonderadas = new HashMap<>();
 
-        List<Oferta> todasLasOfertas = ofertaRepository.findAll().stream()
-                .filter(o -> o.getUniversidad() != null && idsUniversidadesListas.contains(o.getUniversidad().getId()))
-                .collect(Collectors.toList());
-
-        Set<Long> idsOfertas = todasLasOfertas.stream()
-                .map(Oferta::getId)
-                .collect(Collectors.toSet());
-
-        Map<Long, Oferta> ofertasById = todasLasOfertas.stream()
-                .collect(Collectors.toMap(Oferta::getId, o -> o));
-
-        // 3. Borrar todas las asignaciones del pool actual para recalcular desde cero
-        List<Asignacion> existentes = asignacionRepository.findAll().stream()
-                .filter(a -> idsOfertas.contains(a.getOferta().getId()))
-                .collect(Collectors.toList());
-        asignacionRepository.deleteAll(existentes);
-        asignacionRepository.flush();
-
-        // 4. Solicitudes que incluyen al menos una oferta del pool
-        List<Solicitud> solicitudes = solicitudRepository.findAll().stream()
-                .filter(s -> s.getPreferencias().stream().anyMatch(o -> idsOfertas.contains(o.getId())))
-                .collect(Collectors.toList());
-
-        // 5. Construir estructuras por solicitante
-        Map<Long, Solicitante> solicitantesById = new HashMap<>();
-        Map<Long, List<Long>> preferencias = new HashMap<>();  // solo ofertas del pool, en orden
-        Map<Long, Map<Long, Double>> notasMap = new HashMap<>();
-
-        for (Solicitud s : solicitudes) {
-            Solicitante sol = s.getSolicitante();
-            solicitantesById.put(sol.getId(), sol);
-
-            List<Long> prefs = s.getPreferencias().stream()
-                    .filter(o -> idsOfertas.contains(o.getId()))
-                    .map(Oferta::getId)
-                    .collect(Collectors.toList());
-            preferencias.put(sol.getId(), prefs);
-
+        for (Solicitud solicitud : solicitudes) {
+            Estudiante estudiante = solicitud.getEstudiante();
             Map<Long, Double> notasPorOferta = new HashMap<>();
-            for (Oferta o : todasLasOfertas) {
-                double nota = sol.getNotaBase();
-                for (CriterioAdmision c : o.getCriterios()) {
-                    for (NotaAsignatura na : sol.getNotas()) {
-                        if (na.getAsignatura().equals(c.getAsignatura())) {
-                            nota += na.getNota() * c.getPeso();
+
+            for (Oferta oferta : ofertas) {
+                double nota = estudiante.getNotaBase();
+                for (CriterioAdmision criterio : oferta.getCriterios()) {
+                    for (NotaAsignatura na : estudiante.getNotas()) {
+                        if (na.getAsignatura().equals(criterio.getAsignatura())) {
+                            nota += na.getNota() * criterio.getPeso();
                             break;
                         }
                     }
                 }
-                notasPorOferta.put(o.getId(), nota);
+                notasPorOferta.put(oferta.getId(), nota);
             }
-            notasMap.put(sol.getId(), notasPorOferta);
+            notasPonderadas.put(estudiante.getId(), notasPorOferta);
         }
 
-        // 6. Algoritmo de Gale-Shapley global
-        Map<Long, Map<Long, Double>> aceptados = new HashMap<>();
-        for (Oferta o : todasLasOfertas) {
-            aceptados.put(o.getId(), new HashMap<>());
+        // 4. Para cada oferta, construir la lista ordenada de candidatos por nota ponderada
+        // ofertaId -> lista de solicitudes ordenadas por nota desc
+        Map<Long, List<Solicitud>> candidatosPorOferta = new HashMap<>();
+        for (Oferta oferta : ofertas) {
+            List<Solicitud> candidatos = solicitudes.stream()
+                .filter(s -> s.getPreferencias().stream()
+                    .anyMatch(p -> p.getOferta().getId().equals(oferta.getId())))
+                .sorted(Comparator.comparingDouble(s ->
+                    -notasPonderadas.get(s.getEstudiante().getId()).get(oferta.getId())))
+                .collect(Collectors.toList());
+            candidatosPorOferta.put(oferta.getId(), candidatos);
         }
 
-        Map<Long, Integer> nextProposal = new HashMap<>();
-        for (Long id : solicitantesById.keySet()) {
-            nextProposal.put(id, 0);
-        }
+        // 5. Algoritmo de asignación:
+        // Para cada estudiante, obtener su preferencia de mayor orden donde quede dentro de las plazas
+        // estudianteId -> ofertaId asignada (null si no se asigna)
+        Map<Long, Long> asignacionFinal = new HashMap<>();
 
-        Queue<Long> libres = new LinkedList<>(solicitantesById.keySet());
+        for (Solicitud solicitud : solicitudes) {
+            Estudiante estudiante = solicitud.getEstudiante();
 
-        while (!libres.isEmpty()) {
-            Long studentId = libres.poll();
-            List<Long> prefs = preferencias.get(studentId);
-            int idx = nextProposal.get(studentId);
+            // Preferencias ordenadas de mayor a menor prioridad
+            List<Preferencia> preferencias = solicitud.getPreferencias().stream()
+                .sorted(Comparator.comparingInt(Preferencia::getOrdenPreferencia))
+                .collect(Collectors.toList());
 
-            if (idx >= prefs.size()) continue; // sin más opciones en el pool
+            for (Preferencia preferencia : preferencias) {
+                Long ofertaId = preferencia.getOferta().getId();
+                Oferta oferta = ofertas.stream()
+                    .filter(o -> o.getId().equals(ofertaId))
+                    .findFirst().orElse(null);
+                if (oferta == null) continue;
 
-            Long ofertaId = prefs.get(idx);
-            nextProposal.put(studentId, idx + 1);
-
-            double nota = notasMap.get(studentId).get(ofertaId);
-            Map<Long, Double> aceptadosOferta = aceptados.get(ofertaId);
-            int maxPlazas = ofertasById.get(ofertaId).getPlazas();
-
-            if (aceptadosOferta.size() < maxPlazas) {
-                aceptadosOferta.put(studentId, nota);
-            } else {
-                Long peorId = null;
-                double peorNota = Double.MAX_VALUE;
-                for (Map.Entry<Long, Double> e : aceptadosOferta.entrySet()) {
-                    if (e.getValue() < peorNota) {
-                        peorNota = e.getValue();
-                        peorId = e.getKey();
+                // Posición del estudiante en la lista de esta oferta
+                List<Solicitud> candidatos = candidatosPorOferta.get(ofertaId);
+                int posicion = -1;
+                for (int i = 0; i < candidatos.size(); i++) {
+                    if (candidatos.get(i).getEstudiante().getId().equals(estudiante.getId())) {
+                        posicion = i;
+                        break;
                     }
                 }
-                if (nota > peorNota) {
-                    aceptadosOferta.remove(peorId);
-                    aceptadosOferta.put(studentId, nota);
-                    libres.add(peorId);
-                } else {
-                    libres.add(studentId);
+
+                // Entra en plazas y no tiene asignación en preferencia superior
+                if (posicion >= 0 && posicion < oferta.getTotalPlazas()) {
+                    asignacionFinal.put(estudiante.getId(), ofertaId);
+                    break; // se asigna a la primera oferta donde entra
                 }
             }
         }
 
-        // 7. Guardar asignaciones finales
-        for (Map.Entry<Long, Map<Long, Double>> entry : aceptados.entrySet()) {
-            Oferta oferta = ofertasById.get(entry.getKey());
-            for (Map.Entry<Long, Double> alumno : entry.getValue().entrySet()) {
+        // 6. Guardar asignaciones y actualizar estado de solicitudes
+        for (Solicitud solicitud : solicitudes) {
+            Estudiante estudiante = solicitud.getEstudiante();
+            Long ofertaIdAsignada = asignacionFinal.get(estudiante.getId());
+
+            if (ofertaIdAsignada != null) {
+                Oferta oferta = ofertas.stream()
+                    .filter(o -> o.getId().equals(ofertaIdAsignada))
+                    .findFirst().orElse(null);
+
                 Asignacion asignacion = new Asignacion();
-                asignacion.setSolicitante(solicitantesById.get(alumno.getKey()));
+                asignacion.setSolicitud(solicitud);
                 asignacion.setOferta(oferta);
-                asignacion.setNotaFinal(alumno.getValue());
-                asignacion.setEstado("ASIGNADA");
+                asignacion.setNotaFinal(notasPonderadas.get(estudiante.getId()).get(ofertaIdAsignada));
+                asignacion.setEstado(EstadoAsignacionEnum.ASIGNADA);
                 asignacionRepository.save(asignacion);
+
+                solicitud.setEstado(EstadoSolicitudEnum.ASIGNADA);
+            } else {
+                solicitud.setEstado(EstadoSolicitudEnum.RECHAZADA);
             }
+            solicitudRepository.save(solicitud);
         }
     }
 
@@ -164,10 +138,109 @@ public class AsignacionService {
         return asignacionRepository.findAll();
     }
 
-    public Optional<Asignacion> obtenerPorUsuario(Long usuarioId) {
-        List<Asignacion> todas = asignacionRepository.findAllBySolicitanteUsuarioId(usuarioId);
-        if (todas.isEmpty()) return Optional.empty();
-        if (todas.size() == 1) return Optional.of(todas.get(0));
-        return todas.stream().max(Comparator.comparingDouble(Asignacion::getNotaFinal));
+    public Optional<Asignacion> obtenerPorEstudiante(Long estudianteId) {
+        return solicitudRepository.findByEstudianteId(estudianteId)
+            .flatMap(s -> asignacionRepository.findBySolicitudId(s.getId()));
+    }
+
+    // Tabla de candidatos por oferta con columna "tienePlazaSuperior"
+    public List<Map<String, Object>> obtenerTablaOferta(Long ofertaId) {
+        Oferta oferta = ofertaRepository.findById(ofertaId).orElse(null);
+        if (oferta == null) return List.of();
+
+        Long convocatoriaId = oferta.getConvocatoria().getId();
+        List<Oferta> todasOfertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
+        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
+
+        // Filtrar solicitudes que incluyen esta oferta
+        List<Solicitud> candidatos = solicitudes.stream()
+            .filter(s -> s.getPreferencias().stream()
+                .anyMatch(p -> p.getOferta().getId().equals(ofertaId)))
+            .collect(Collectors.toList());
+
+        // Calcular nota ponderada para esta oferta
+        List<Map<String, Object>> tabla = new ArrayList<>();
+        for (Solicitud solicitud : candidatos) {
+            Estudiante estudiante = solicitud.getEstudiante();
+            double nota = estudiante.getNotaBase();
+            for (CriterioAdmision criterio : oferta.getCriterios()) {
+                for (NotaAsignatura na : estudiante.getNotas()) {
+                    if (na.getAsignatura().equals(criterio.getAsignatura())) {
+                        nota += na.getNota() * criterio.getPeso();
+                        break;
+                    }
+                }
+            }
+
+            // Comprobar si tiene plaza en preferencia superior
+            boolean tienePlazaSuperior = tienePlazaEnPreferenciaSuperior(
+                solicitud, ofertaId, todasOfertas, solicitudes);
+
+            Map<String, Object> fila = new LinkedHashMap<>();
+            fila.put("estudianteId", estudiante.getId());
+            fila.put("nombre", estudiante.getNombre() + " " + estudiante.getApellidos());
+            fila.put("notaPonderada", nota);
+            fila.put("tienePlazaSuperior", tienePlazaSuperior);
+            tabla.add(fila);
+        }
+
+        // Ordenar por nota ponderada descendente
+        tabla.sort((a, b) -> Double.compare(
+            (double) b.get("notaPonderada"), (double) a.get("notaPonderada")));
+
+        return tabla;
+    }
+
+    private boolean tienePlazaEnPreferenciaSuperior(Solicitud solicitud, Long ofertaId,
+                                                     List<Oferta> todasOfertas,
+                                                     List<Solicitud> todasSolicitudes) {
+        // Preferencias con orden menor (=mayor prioridad) que la oferta actual
+        int ordenActual = solicitud.getPreferencias().stream()
+            .filter(p -> p.getOferta().getId().equals(ofertaId))
+            .mapToInt(Preferencia::getOrdenPreferencia)
+            .findFirst().orElse(Integer.MAX_VALUE);
+
+        List<Long> ofertasSuperiores = solicitud.getPreferencias().stream()
+            .filter(p -> p.getOrdenPreferencia() < ordenActual)
+            .map(p -> p.getOferta().getId())
+            .collect(Collectors.toList());
+
+        for (Long ofertaSuperiorId : ofertasSuperiores) {
+            Oferta ofertaSuperior = todasOfertas.stream()
+                .filter(o -> o.getId().equals(ofertaSuperiorId))
+                .findFirst().orElse(null);
+            if (ofertaSuperior == null) continue;
+
+            // Ver posición en esa oferta superior
+            List<Solicitud> candidatosSuperior = todasSolicitudes.stream()
+                .filter(s -> s.getPreferencias().stream()
+                    .anyMatch(p -> p.getOferta().getId().equals(ofertaSuperiorId)))
+                .sorted(Comparator.comparingDouble(s -> {
+                    double n = s.getEstudiante().getNotaBase();
+                    for (CriterioAdmision c : ofertaSuperior.getCriterios()) {
+                        for (NotaAsignatura na : s.getEstudiante().getNotas()) {
+                            if (na.getAsignatura().equals(c.getAsignatura())) {
+                                n += na.getNota() * c.getPeso();
+                                break;
+                            }
+                        }
+                    }
+                    return -n;
+                }))
+                .collect(Collectors.toList());
+
+            int posicion = -1;
+            for (int i = 0; i < candidatosSuperior.size(); i++) {
+                if (candidatosSuperior.get(i).getEstudiante().getId()
+                        .equals(solicitud.getEstudiante().getId())) {
+                    posicion = i;
+                    break;
+                }
+            }
+            if (posicion >= 0 && posicion < ofertaSuperior.getTotalPlazas()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

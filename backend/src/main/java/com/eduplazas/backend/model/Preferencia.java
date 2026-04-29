@@ -1,22 +1,21 @@
 package com.eduplazas.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "asignaciones")
-public class Asignacion {
+@Table(name = "preferencias")
+public class Preferencia {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    private EstadoAsignacionEnum estado;
+    private int ordenPreferencia;
 
-    private double notaFinal;
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "solicitud_id")
+    @JsonIgnore
     private Solicitud solicitud;
 
     @ManyToOne
@@ -25,10 +24,8 @@ public class Asignacion {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public EstadoAsignacionEnum getEstado() { return estado; }
-    public void setEstado(EstadoAsignacionEnum estado) { this.estado = estado; }
-    public double getNotaFinal() { return notaFinal; }
-    public void setNotaFinal(double notaFinal) { this.notaFinal = notaFinal; }
+    public int getOrdenPreferencia() { return ordenPreferencia; }
+    public void setOrdenPreferencia(int ordenPreferencia) { this.ordenPreferencia = ordenPreferencia; }
     public Solicitud getSolicitud() { return solicitud; }
     public void setSolicitud(Solicitud solicitud) { this.solicitud = solicitud; }
     public Oferta getOferta() { return oferta; }
