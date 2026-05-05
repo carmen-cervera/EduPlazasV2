@@ -54,9 +54,16 @@ function EstudianteInicio() {
             <button className={styles.button} onClick={() => navigate('/estudiante/grados')}>
               Explorar grados
             </button>
+            {!solicitud && (
             <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
               Nueva solicitud
             </button>
+            )}
+            {solicitud?.estado === 'BORRADOR' && (
+            <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
+              Mi borrador
+            </button>
+            )}
             <button className={styles.button} onClick={() => navigate('/estudiante/ver-solicitud')}>
               Mis solicitudes
             </button>

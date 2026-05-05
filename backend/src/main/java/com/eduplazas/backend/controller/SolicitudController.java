@@ -58,6 +58,31 @@ public class SolicitudController {
         }
     }
 
+    @PostMapping("/borrador")
+    public ResponseEntity<?> guardarBorrador(@RequestBody Map<String, Object> body) {
+        try {
+            Long estudianteId = Long.valueOf(body.get("estudianteId").toString());
+            Long convocatoriaId = Long.valueOf(body.get("convocatoriaId").toString());
+            List<Long> ofertaIds = ((List<?>) body.get("ofertaIds")).stream()
+                    .map(o -> Long.valueOf(o.toString()))
+                    .toList();
+
+            Solicitud solicitud = solicitudService.guardarBorrador(estudianteId, convocatoriaId, ofertaIds);
+            return ResponseEntity.ok(solicitud);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/estudiante/{estudianteId}/notas")
+    public ResponseEntity<?> obtenerNotas(@PathVariable Long estudianteId) {
+        try {
+            return ResponseEntity.ok(solicitudService.obtenerNotas(estudianteId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     // Guardar notas EvAU del estudiante
     @PutMapping("/estudiante/{estudianteId}/notas")
     public ResponseEntity<?> guardarNotas(@PathVariable Long estudianteId,

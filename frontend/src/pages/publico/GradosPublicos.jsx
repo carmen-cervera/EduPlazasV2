@@ -1,31 +1,30 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { obtenerConvocatoriaAbierta, obtenerOfertas, obtenerVerSolicitud } from '../../services/solicitudService'
-import styles from './ExplorarGrados.module.css'
+import { obtenerConvocatoriaAbierta, obtenerOfertas } from '../../services/solicitudService'
+import styles from './GradosPublicos.module.css'
 import logo from '../../assets/LogoPequeño_FondoAzul_SinGorro.png'
 import avatar from '../../assets/avatar.png'
 
-function ExplorarGrados() {
+function GradosPublicos() {
   const navigate = useNavigate()
-  const usuario = JSON.parse(localStorage.getItem('usuario'))
 
   const [convocatoria, setConvocatoria] = useState(null)
   const [ofertas, setOfertas] = useState([])
   const [error, setError] = useState('')
-  const [solicitud, setSolicitud] = useState(null)
 
   useEffect(() => {
     cargarDatos()
-    comprobarSolicitud()
   }, [])
 
   const cargarDatos = async () => {
     try {
       setError('')
+
       const resConvocatoria = await obtenerConvocatoriaAbierta()
       setConvocatoria(resConvocatoria.data)
 
       const resOfertas = await obtenerOfertas(resConvocatoria.data.id)
+
       if (Array.isArray(resOfertas.data)) {
         setOfertas(resOfertas.data.map(o => ({
           id: o.id,
@@ -43,24 +42,15 @@ function ExplorarGrados() {
     }
   }
 
-  const comprobarSolicitud = async () => {
-    try {
-      const resSolicitud = await obtenerVerSolicitud(usuario.id)
-      setSolicitud(resSolicitud.data)
-    } catch {
-      setSolicitud(null)
-    }
-  }
-
-  const cerrarSesion = () => {
-    localStorage.removeItem('usuario')
-    navigate('/')
-  }
-
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <img src={logo} alt="EduPlazas" className={styles.logoImg} onClick={() => navigate('/')} />
+        <img
+          src={logo}
+          alt="EduPlazas"
+          className={styles.logoImg}
+          onClick={() => navigate('/')}
+        />
         <h1 className={styles.tituloHeader}>Explorar grados</h1>
       </header>
 
@@ -68,32 +58,25 @@ function ExplorarGrados() {
         <aside className={styles.sidebar}>
           <div className={styles.userBox}>
             <img src={avatar} alt="EduPlazas" className={styles.avatar} />
-            <p className={styles.email}>{usuario?.email}</p>
+            <p className={styles.email}>Usuario invitado</p>
           </div>
 
           <div className={styles.menu}>
-          {!solicitud && (
-            <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
-              Nueva solicitud
-            </button>
-          )}
-          {solicitud?.estado === 'BORRADOR' && (
-            <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
-              Mi borrador
-            </button>
-          )}
-            <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
-              Volver
+            <button
+              className={styles.button}
+              onClick={() => navigate('/')}
+            >
+              Volver al inicio
             </button>
           </div>
-
-          <button className={styles.button} onClick={cerrarSesion}>
-            Log out
-          </button>
         </aside>
 
         <main className={styles.main}>
           <div className={styles.card}>
+            <p className={styles.infoInvitado}>
+              Estás consultando los grados publicados como usuario invitado.
+            </p>
+
             {convocatoria && (
               <p className={styles.convocatoria}>
                 <strong>Convocatoria abierta:</strong> {convocatoria.cursoAcademico}
@@ -135,4 +118,4 @@ function ExplorarGrados() {
   )
 }
 
-export default ExplorarGrados
+export default GradosPublicos

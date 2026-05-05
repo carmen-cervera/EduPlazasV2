@@ -16,6 +16,7 @@ function VerSolicitud() {
 
   useEffect(() => {
     cargarSolicitud()
+    comprobarSolicitud()
   }, [])
 
   const cargarSolicitud = async () => {
@@ -33,6 +34,15 @@ function VerSolicitud() {
       setAsignacion(resAsignacion.data)
     } catch {
       setAsignacion(null)
+    }
+  }
+
+  const comprobarSolicitud = async () => {
+    try {
+      const resSolicitud = await obtenerVerSolicitud(usuario.id)
+      setSolicitud(resSolicitud.data)
+    } catch {
+      setSolicitud(null)
     }
   }
 
@@ -59,12 +69,15 @@ function VerSolicitud() {
             <button className={styles.button} onClick={() => navigate('/estudiante/grados')}>
               Explorar grados
             </button>
-            <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
-              Nueva solicitud
+            {solicitud?.estado === 'BORRADOR' && (
+            <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
+              Mi borrador
             </button>
+            )}
             <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
               Volver
             </button>
+            
           </div>
 
           <button className={styles.button} onClick={cerrarSesion}>

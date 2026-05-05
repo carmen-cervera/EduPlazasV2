@@ -11,6 +11,7 @@ import VerResultados from './pages/solicitudes/VerResultados'
 import UniversidadInicio from './pages/universidad/UniversidadInicio'
 import PublicarOferta from './pages/universidad/PublicarOferta'
 import MisOfertas from './pages/universidad/MisOfertas'
+import GradosPublicos from './pages/publico/GradosPublicos'
 
 function App() {
   return (
@@ -22,7 +23,9 @@ function App() {
         <Route path="/registro/estudiante" element={<RegistroEstudiante />} />
         <Route path="/registro/universidad" element={<RegistroUniversidad />} />
         <Route path="/estudiante/inicio" element={<EstudianteInicio />} />
+        <Route path="/grados-publicos" element={<GradosPublicos />} />
         <Route path="/estudiante/solicitud" element={<CrearSolicitud />} />
+        <Route path="/estudiante/borradores" element={<CrearSolicitud />} />
         <Route path="/estudiante/grados" element={<ExplorarGrados />} />
         <Route path="/estudiante/ver-solicitud" element={<VerSolicitud />} />
         <Route path="/estudiante/resultados" element={<VerResultados />} />

@@ -19,6 +19,9 @@ function Home() {
           <button className={styles.btnUniversidades} onClick={() => navigate('/universidades/login')}>
             UNIVERSIDADES
           </button>
+          <button className={styles.btnInvitado} onClick={() => navigate('/grados-publicos')}>
+            EXPLORAR GRADOS
+          </button>
         </div>
       </div>
     </div>

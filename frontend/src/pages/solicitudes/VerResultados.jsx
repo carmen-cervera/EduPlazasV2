@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { obtenerResultadoEstudiante } from '../../services/asignacionService'
+import { obtenerVerSolicitud } from '../../services/solicitudService'
 import styles from './VerSolicitud.module.css'
 
 function VerResultados() {
   const navigate = useNavigate()
   const usuario = JSON.parse(localStorage.getItem('usuario'))
-
+  const [solicitud, setSolicitud] = useState(null)
   const [asignacion, setAsignacion] = useState(undefined)
   const [error, setError] = useState('')
 
@@ -17,7 +18,17 @@ function VerResultados() {
         setError(err.response?.data || 'Error al cargar el resultado')
         setAsignacion(null)
       })
+    comprobarSolicitud()
   }, [])
+
+  const comprobarSolicitud = async () => {
+  try {
+    const resSolicitud = await obtenerVerSolicitud(usuario.id)
+    setSolicitud(resSolicitud.data)
+  } catch {
+    setSolicitud(null)
+  }
+}
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
@@ -43,6 +54,11 @@ function VerResultados() {
             <button className={styles.button} onClick={() => navigate('/estudiante/ver-solicitud')}>
               Mi solicitud
             </button>
+            {solicitud?.estado === 'BORRADOR' && (
+            <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
+              Mi borrador
+            </button>
+            )}
             <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
               Volver
             </button>

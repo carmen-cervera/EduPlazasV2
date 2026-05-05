@@ -36,6 +36,29 @@ public class SolicitudService {
     @Transactional
     public Solicitud crearSolicitud(Long estudianteId, Long convocatoriaId,
                                     List<Long> ofertaIdsOrdenadas) {
+        return crearOActualizarSolicitud(
+                estudianteId,
+                convocatoriaId,
+                ofertaIdsOrdenadas,
+                EstadoSolicitudEnum.ENTREGADA
+        );
+    }
+
+    @Transactional
+    public Solicitud guardarBorrador(Long estudianteId, Long convocatoriaId,
+                                    List<Long> ofertaIdsOrdenadas) {
+        return crearOActualizarSolicitud(
+                estudianteId,
+                convocatoriaId,
+                ofertaIdsOrdenadas,
+                EstadoSolicitudEnum.BORRADOR
+        );
+    }
+
+    private Solicitud crearOActualizarSolicitud(Long estudianteId,
+                                                Long convocatoriaId,
+                                                List<Long> ofertaIdsOrdenadas,
+                                                EstadoSolicitudEnum nuevoEstado) {
 
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new RuntimeException("ERROR: Estudiante no encontrado"));
@@ -47,11 +70,6 @@ public class SolicitudService {
             throw new RuntimeException("La convocatoria no está abierta");
         }
 
-        if (solicitudRepository.findByEstudianteIdAndConvocatoriaId(
-                estudianteId, convocatoriaId).isPresent()) {
-            throw new RuntimeException("Ya tienes una solicitud para esta convocatoria");
-        }
-
         if (ofertaIdsOrdenadas == null || ofertaIdsOrdenadas.isEmpty()) {
             throw new RuntimeException("ERROR: Debes seleccionar al menos una oferta");
         }
@@ -61,11 +79,35 @@ public class SolicitudService {
             throw new RuntimeException("No puede haber grados repetidos en la solicitud");
         }
 
-        Solicitud solicitud = new Solicitud();
-        solicitud.setEstudiante(estudiante);
-        solicitud.setConvocatoria(convocatoria);
-        solicitud.setEstado(EstadoSolicitudEnum.ENTREGADA);
-        solicitud.setFechaPresentacion(LocalDate.now());
+        Optional<Solicitud> solicitudExistente =
+                solicitudRepository.findByEstudianteIdAndConvocatoriaId(estudianteId, convocatoriaId);
+
+        Solicitud solicitud;
+
+        if (solicitudExistente.isPresent()) {
+            solicitud = solicitudExistente.get();
+
+            if (solicitud.getEstado() != EstadoSolicitudEnum.BORRADOR) {
+                throw new RuntimeException("La solicitud ya ha sido enviada y no puede modificarse");
+            }
+
+            preferenciaRepository.deleteBySolicitudId(solicitud.getId());
+
+        } else {
+            solicitud = new Solicitud();
+            solicitud.setEstudiante(estudiante);
+            solicitud.setConvocatoria(convocatoria);
+            solicitudRepository.save(solicitud);
+        }
+
+        solicitud.setEstado(nuevoEstado);
+
+        if (nuevoEstado == EstadoSolicitudEnum.ENTREGADA) {
+            solicitud.setFechaPresentacion(LocalDate.now());
+        } else {
+            solicitud.setFechaPresentacion(null);
+        }
+
         solicitudRepository.save(solicitud);
 
         for (int i = 0; i < ofertaIdsOrdenadas.size(); i++) {
@@ -84,6 +126,10 @@ public class SolicitudService {
         }
 
         return solicitud;
+    }
+
+    public List<NotaAsignatura> obtenerNotas(Long estudianteId) {
+        return notaAsignaturaRepository.findByEstudianteId(estudianteId);
     }
 
     public Optional<Solicitud> obtenerPorEstudiante(Long estudianteId) {
