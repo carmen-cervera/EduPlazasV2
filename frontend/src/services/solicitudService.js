@@ -14,5 +14,11 @@ export const obtenerVerSolicitud = (estudianteId) =>
 export const crearSolicitud = (estudianteId, convocatoriaId, ofertaIds) =>
   axios.post(`${BASE_URL}`, { estudianteId, convocatoriaId, ofertaIds })
 
+export const guardarBorradorSolicitud = (estudianteId, convocatoriaId, ofertaIds) =>
+  axios.post(`${BASE_URL}/borrador`, { estudianteId, convocatoriaId, ofertaIds })
+
 export const guardarNotas = (estudianteId, notas) =>
   axios.put(`${BASE_URL}/estudiante/${estudianteId}/notas`, notas)
+
+export const obtenerNotas = (estudianteId) =>
+  axios.get(`${BASE_URL}/estudiante/${estudianteId}/notas`)

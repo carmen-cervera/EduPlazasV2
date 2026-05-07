@@ -55,5 +55,17 @@
   cursor: pointer;
 }
 
+.btnInvitado {
+  background-color: #376af8;
+  color: white;
+  border: none;
+  padding: 20px 80px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
 .btnEstudiantes:hover { opacity: 0.9; }
 .btnUniversidades:hover { opacity: 0.9; }
+.btnInvitado:hover { opacity: 0.9; }
