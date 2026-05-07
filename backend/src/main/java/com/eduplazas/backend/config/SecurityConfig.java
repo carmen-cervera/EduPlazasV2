@@ -13,7 +13,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**", "/solicitudes/**", "/ofertas/**", "/asignaciones/**", "/h2-console/**").permitAll()
+                .requestMatchers("/auth/**", "/solicitudes/**", "/ofertas/**", "/asignaciones/**", "/admin/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers

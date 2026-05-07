@@ -13,15 +13,18 @@ public class OfertaService {
     private final RepresentanteUniversidadRepository representanteRepository;
     private final ConvocatoriaRepository convocatoriaRepository;
     private final CriterioAdmisionRepository criterioAdmisionRepository;
+    private final EmailService emailService;
 
     public OfertaService(OfertaRepository ofertaRepository,
                          RepresentanteUniversidadRepository representanteRepository,
                          ConvocatoriaRepository convocatoriaRepository,
-                         CriterioAdmisionRepository criterioAdmisionRepository) {
+                         CriterioAdmisionRepository criterioAdmisionRepository,
+                         EmailService emailService) {
         this.ofertaRepository = ofertaRepository;
         this.representanteRepository = representanteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.criterioAdmisionRepository = criterioAdmisionRepository;
+        this.emailService = emailService;
     }
 
     public List<Oferta> obtenerTodas() {
@@ -54,11 +57,28 @@ public class OfertaService {
 
         Oferta ofertaGuardada = ofertaRepository.save(oferta);
 
+        List<String> nombresAsignaturas = List.of();
         if (criterios != null) {
             for (CriterioAdmision criterio : criterios) {
                 criterio.setOferta(ofertaGuardada);
                 criterioAdmisionRepository.save(criterio);
             }
+            nombresAsignaturas = criterios.stream()
+                .map(CriterioAdmision::getAsignatura)
+                .toList();
+        }
+
+        // Email de confirmación al representante
+        try {
+            emailService.enviarConfirmacionOferta(
+                representante.getEmail(),
+                representante.getNombre(),
+                grado,
+                totalPlazas,
+                nombresAsignaturas
+            );
+        } catch (Exception e) {
+            System.err.println("Error enviando email de confirmación de oferta: " + e.getMessage());
         }
 
         return ofertaGuardada;

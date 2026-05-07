@@ -15,34 +15,31 @@ public class AsignacionService {
     private final AsignacionRepository asignacionRepository;
     private final OfertaRepository ofertaRepository;
     private final PreferenciaRepository preferenciaRepository;
+    private final EmailService emailService;
 
     public AsignacionService(SolicitudRepository solicitudRepository,
                              AsignacionRepository asignacionRepository,
                              OfertaRepository ofertaRepository,
-                             PreferenciaRepository preferenciaRepository) {
+                             PreferenciaRepository preferenciaRepository,
+                             EmailService emailService) {
         this.solicitudRepository = solicitudRepository;
         this.asignacionRepository = asignacionRepository;
         this.ofertaRepository = ofertaRepository;
         this.preferenciaRepository = preferenciaRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
     public void procesarAsignaciones(Long convocatoriaId) {
 
-        // 1. Obtener todas las solicitudes de la convocatoria
         List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
-
-        // 2. Obtener todas las ofertas de la convocatoria
         List<Oferta> ofertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
 
-        // 3. Para cada solicitud, calcular la nota ponderada por oferta
-        // notasPonderadas: estudianteId -> ofertaId -> nota
+        // Calcular notas ponderadas: estudianteId -> ofertaId -> nota
         Map<Long, Map<Long, Double>> notasPonderadas = new HashMap<>();
-
         for (Solicitud solicitud : solicitudes) {
             Estudiante estudiante = solicitud.getEstudiante();
             Map<Long, Double> notasPorOferta = new HashMap<>();
-
             for (Oferta oferta : ofertas) {
                 double nota = estudiante.getNotaBase();
                 for (CriterioAdmision criterio : oferta.getCriterios()) {
@@ -58,8 +55,7 @@ public class AsignacionService {
             notasPonderadas.put(estudiante.getId(), notasPorOferta);
         }
 
-        // 4. Para cada oferta, construir la lista ordenada de candidatos por nota ponderada
-        // ofertaId -> lista de solicitudes ordenadas por nota desc
+        // Candidatos por oferta ordenados por nota desc
         Map<Long, List<Solicitud>> candidatosPorOferta = new HashMap<>();
         for (Oferta oferta : ofertas) {
             List<Solicitud> candidatos = solicitudes.stream()
@@ -71,15 +67,10 @@ public class AsignacionService {
             candidatosPorOferta.put(oferta.getId(), candidatos);
         }
 
-        // 5. Algoritmo de asignación:
-        // Para cada estudiante, obtener su preferencia de mayor orden donde quede dentro de las plazas
-        // estudianteId -> ofertaId asignada (null si no se asigna)
+        // Algoritmo de asignación
         Map<Long, Long> asignacionFinal = new HashMap<>();
-
         for (Solicitud solicitud : solicitudes) {
             Estudiante estudiante = solicitud.getEstudiante();
-
-            // Preferencias ordenadas de mayor a menor prioridad
             List<Preferencia> preferencias = solicitud.getPreferencias().stream()
                 .sorted(Comparator.comparingInt(Preferencia::getOrdenPreferencia))
                 .collect(Collectors.toList());
@@ -91,7 +82,6 @@ public class AsignacionService {
                     .findFirst().orElse(null);
                 if (oferta == null) continue;
 
-                // Posición del estudiante en la lista de esta oferta
                 List<Solicitud> candidatos = candidatosPorOferta.get(ofertaId);
                 int posicion = -1;
                 for (int i = 0; i < candidatos.size(); i++) {
@@ -100,16 +90,36 @@ public class AsignacionService {
                         break;
                     }
                 }
-
-                // Entra en plazas y no tiene asignación en preferencia superior
                 if (posicion >= 0 && posicion < oferta.getTotalPlazas()) {
                     asignacionFinal.put(estudiante.getId(), ofertaId);
-                    break; // se asigna a la primera oferta donde entra
+                    break;
                 }
             }
         }
 
-        // 6. Guardar asignaciones y actualizar estado de solicitudes
+        // Calcular nota de corte por oferta y guardarla
+        for (Oferta oferta : ofertas) {
+            List<Solicitud> candidatos = candidatosPorOferta.get(oferta.getId());
+            // Estudiantes efectivamente admitidos en esta oferta
+            List<Solicitud> admitidos = candidatos.stream()
+                .filter(s -> oferta.getId().equals(asignacionFinal.get(s.getEstudiante().getId())))
+                .collect(Collectors.toList());
+
+            if (!admitidos.isEmpty()) {
+                // El último admitido (menor nota) marca la nota de corte
+                double notaCorte = admitidos.stream()
+                    .mapToDouble(s -> notasPonderadas.get(s.getEstudiante().getId()).get(oferta.getId()))
+                    .min()
+                    .orElse(0.0);
+                oferta.setNotaCorte(notaCorte);
+                ofertaRepository.save(oferta);
+            }
+        }
+
+        // Guardar asignaciones y enviar emails
+        String cursoAcademico = solicitudes.isEmpty() ? "actual" :
+            solicitudes.get(0).getConvocatoria().getCursoAcademico();
+
         for (Solicitud solicitud : solicitudes) {
             Estudiante estudiante = solicitud.getEstudiante();
             Long ofertaIdAsignada = asignacionFinal.get(estudiante.getId());
@@ -127,8 +137,34 @@ public class AsignacionService {
                 asignacionRepository.save(asignacion);
 
                 solicitud.setEstado(EstadoSolicitudEnum.ASIGNADA);
+
+                // Email: asignado
+                try {
+                    emailService.enviarResultadoAsignado(
+                        estudiante.getEmail(),
+                        estudiante.getNombre(),
+                        cursoAcademico,
+                        oferta.getGrado(),
+                        oferta.getUniversidad().getNombre(),
+                        oferta.getNotaCorte()
+                    );
+                } catch (Exception e) {
+                    System.err.println("Error enviando email a " + estudiante.getEmail() + ": " + e.getMessage());
+                }
+
             } else {
                 solicitud.setEstado(EstadoSolicitudEnum.RECHAZADA);
+
+                // Email: rechazado
+                try {
+                    emailService.enviarResultadoRechazado(
+                        estudiante.getEmail(),
+                        estudiante.getNombre(),
+                        cursoAcademico
+                    );
+                } catch (Exception e) {
+                    System.err.println("Error enviando email a " + estudiante.getEmail() + ": " + e.getMessage());
+                }
             }
             solicitudRepository.save(solicitud);
         }
@@ -143,7 +179,6 @@ public class AsignacionService {
             .flatMap(s -> asignacionRepository.findBySolicitudId(s.getId()));
     }
 
-    // Tabla de candidatos por oferta con columna "tienePlazaSuperior"
     public List<Map<String, Object>> obtenerTablaOferta(Long ofertaId) {
         Oferta oferta = ofertaRepository.findById(ofertaId).orElse(null);
         if (oferta == null) return List.of();
@@ -152,13 +187,11 @@ public class AsignacionService {
         List<Oferta> todasOfertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
         List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
 
-        // Filtrar solicitudes que incluyen esta oferta
         List<Solicitud> candidatos = solicitudes.stream()
             .filter(s -> s.getPreferencias().stream()
                 .anyMatch(p -> p.getOferta().getId().equals(ofertaId)))
             .collect(Collectors.toList());
 
-        // Calcular nota ponderada para esta oferta
         List<Map<String, Object>> tabla = new ArrayList<>();
         for (Solicitud solicitud : candidatos) {
             Estudiante estudiante = solicitud.getEstudiante();
@@ -172,7 +205,6 @@ public class AsignacionService {
                 }
             }
 
-            // Comprobar si tiene plaza en preferencia superior
             boolean tienePlazaSuperior = tienePlazaEnPreferenciaSuperior(
                 solicitud, ofertaId, todasOfertas, solicitudes);
 
@@ -184,7 +216,6 @@ public class AsignacionService {
             tabla.add(fila);
         }
 
-        // Ordenar por nota ponderada descendente
         tabla.sort((a, b) -> Double.compare(
             (double) b.get("notaPonderada"), (double) a.get("notaPonderada")));
 
@@ -194,7 +225,6 @@ public class AsignacionService {
     private boolean tienePlazaEnPreferenciaSuperior(Solicitud solicitud, Long ofertaId,
                                                      List<Oferta> todasOfertas,
                                                      List<Solicitud> todasSolicitudes) {
-        // Preferencias con orden menor (=mayor prioridad) que la oferta actual
         int ordenActual = solicitud.getPreferencias().stream()
             .filter(p -> p.getOferta().getId().equals(ofertaId))
             .mapToInt(Preferencia::getOrdenPreferencia)
@@ -210,8 +240,8 @@ public class AsignacionService {
                 .filter(o -> o.getId().equals(ofertaSuperiorId))
                 .findFirst().orElse(null);
             if (ofertaSuperior == null) continue;
+            
 
-            // Ver posición en esa oferta superior
             List<Solicitud> candidatosSuperior = todasSolicitudes.stream()
                 .filter(s -> s.getPreferencias().stream()
                     .anyMatch(p -> p.getOferta().getId().equals(ofertaSuperiorId)))

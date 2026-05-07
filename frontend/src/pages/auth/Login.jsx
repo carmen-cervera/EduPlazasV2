@@ -18,9 +18,11 @@ function Login({ rol }) {
       const usuario = response.data
       localStorage.setItem('usuario', JSON.stringify(usuario))
   
-      if (usuario.rol === 'ESTUDIANTE' || (usuario.rol === 'ADMIN' && esEstudiante)) {
+      if (usuario.rol === 'ADMIN') {
+        navigate('/admin/panel')
+      } else if (usuario.rol === 'ESTUDIANTE') {
         navigate('/estudiante/inicio')
-      } else if (usuario.rol === 'UNIVERSIDAD' || (usuario.rol === 'ADMIN' && !esEstudiante)) {
+      } else if (usuario.rol === 'UNIVERSIDAD') {
         navigate('/universidad/inicio')
       }
     } catch (err) {

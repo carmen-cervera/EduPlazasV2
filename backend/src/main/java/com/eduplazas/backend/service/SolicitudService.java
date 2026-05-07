@@ -18,19 +18,22 @@ public class SolicitudService {
     private final OfertaRepository ofertaRepository;
     private final NotaAsignaturaRepository notaAsignaturaRepository;
     private final PreferenciaRepository preferenciaRepository;
+    private final EmailService emailService;
 
     public SolicitudService(SolicitudRepository solicitudRepository,
                             EstudianteRepository estudianteRepository,
                             ConvocatoriaRepository convocatoriaRepository,
                             OfertaRepository ofertaRepository,
                             NotaAsignaturaRepository notaAsignaturaRepository,
-                            PreferenciaRepository preferenciaRepository) {
+                            PreferenciaRepository preferenciaRepository,
+                            EmailService emailService) {
         this.solicitudRepository = solicitudRepository;
         this.estudianteRepository = estudianteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.ofertaRepository = ofertaRepository;
         this.notaAsignaturaRepository = notaAsignaturaRepository;
         this.preferenciaRepository = preferenciaRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -68,6 +71,7 @@ public class SolicitudService {
         solicitud.setFechaPresentacion(LocalDate.now());
         solicitudRepository.save(solicitud);
 
+        List<String> gradosEnOrden = new ArrayList<>();
         for (int i = 0; i < ofertaIdsOrdenadas.size(); i++) {
             Oferta oferta = ofertaRepository.findById(ofertaIdsOrdenadas.get(i))
                     .orElseThrow(() -> new RuntimeException("Oferta no encontrada"));
@@ -81,6 +85,20 @@ public class SolicitudService {
             preferencia.setOferta(oferta);
             preferencia.setOrdenPreferencia(i + 1);
             preferenciaRepository.save(preferencia);
+
+            gradosEnOrden.add(oferta.getGrado() + " — " + oferta.getUniversidad().getNombre());
+        }
+
+        // Email de confirmación
+        try {
+            emailService.enviarConfirmacionSolicitud(
+                estudiante.getEmail(),
+                estudiante.getNombre(),
+                convocatoria.getCursoAcademico(),
+                gradosEnOrden
+            );
+        } catch (Exception e) {
+            System.err.println("Error enviando email de confirmación: " + e.getMessage());
         }
 
         return solicitud;

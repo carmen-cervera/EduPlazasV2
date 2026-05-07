@@ -38,7 +38,7 @@ function RegistroEstudiante() {
   if (exito) return (
     <div className={styles.fondo} style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1600')" }}>
       <div className={styles.card}>
-        <p className={styles.exito}>✅ Registro completado. Redirigiendo...</p>
+        <p className={styles.exito}>Registro completado. Redirigiendo...</p>
       </div>
     </div>
   )

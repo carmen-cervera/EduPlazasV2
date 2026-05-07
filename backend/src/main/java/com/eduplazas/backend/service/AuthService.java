@@ -79,6 +79,9 @@ public class AuthService {
         if (universidad == null) {
             return "ERROR: Universidad no encontrada";
         }
+        if (!emailInstitucional.endsWith("@" + universidad.getExtensionEmail())) {
+            return "ERROR: El email no corresponde a la universidad seleccionada";
+        }
 
         RepresentanteUniversidad representante = new RepresentanteUniversidad();
         representante.setNombre(nombre);
