@@ -1,5 +1,6 @@
 package com.eduplazas.backend.controller;
 
+import com.eduplazas.backend.dto.SolicitudRecibidaDTO;
 import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.service.SolicitudService;
 import org.springframework.http.ResponseEntity;
@@ -86,12 +87,18 @@ public class SolicitudController {
     // Guardar notas EvAU del estudiante
     @PutMapping("/estudiante/{estudianteId}/notas")
     public ResponseEntity<?> guardarNotas(@PathVariable Long estudianteId,
-                                          @RequestBody List<NotaAsignatura> notas) {
+            @RequestBody List<NotaAsignatura> notas) {
         try {
             solicitudService.guardarNotas(estudianteId, notas);
             return ResponseEntity.ok("Notas guardadas correctamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/universidad/recibidas/{univId}")
+    public ResponseEntity<List<SolicitudRecibidaDTO>> listarRecibidas(@PathVariable Long univId) {
+        List<SolicitudRecibidaDTO> lista = solicitudService.obtenerSolicitudesParaUniversidad(univId);
+        return ResponseEntity.ok(lista);
     }
 }

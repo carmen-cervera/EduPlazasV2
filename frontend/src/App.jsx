@@ -12,6 +12,8 @@ import UniversidadInicio from './pages/universidad/UniversidadInicio'
 import PublicarOferta from './pages/universidad/PublicarOferta'
 import MisOfertas from './pages/universidad/MisOfertas'
 import GradosPublicos from './pages/publico/GradosPublicos'
+import SolicitudesRecibidas from './pages/universidad/SolicitudesRecibidas'
+import AdminPanel from './pages/admin/AdminPanel'
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
         <Route path="/universidad/inicio" element={<UniversidadInicio />} />
         <Route path="/universidad/publicar-oferta" element={<PublicarOferta />} />
         <Route path="/universidad/mis-ofertas" element={<MisOfertas />} />
+        <Route path="/universidad/solicitudes/:univId" element={<SolicitudesRecibidas />} />
+        <Route path="/admin/panel" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>
   )

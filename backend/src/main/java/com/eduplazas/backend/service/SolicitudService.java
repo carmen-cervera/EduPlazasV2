@@ -2,6 +2,7 @@ package com.eduplazas.backend.service;
 
 import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.repository.*;
+import com.eduplazas.backend.dto.SolicitudRecibidaDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,47 +19,41 @@ public class SolicitudService {
     private final OfertaRepository ofertaRepository;
     private final NotaAsignaturaRepository notaAsignaturaRepository;
     private final PreferenciaRepository preferenciaRepository;
+    private final EmailService emailService;
 
     public SolicitudService(SolicitudRepository solicitudRepository,
                             EstudianteRepository estudianteRepository,
                             ConvocatoriaRepository convocatoriaRepository,
                             OfertaRepository ofertaRepository,
                             NotaAsignaturaRepository notaAsignaturaRepository,
-                            PreferenciaRepository preferenciaRepository) {
+                            PreferenciaRepository preferenciaRepository,
+                            EmailService emailService) {
         this.solicitudRepository = solicitudRepository;
         this.estudianteRepository = estudianteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.ofertaRepository = ofertaRepository;
         this.notaAsignaturaRepository = notaAsignaturaRepository;
         this.preferenciaRepository = preferenciaRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
     public Solicitud crearSolicitud(Long estudianteId, Long convocatoriaId,
                                     List<Long> ofertaIdsOrdenadas) {
-        return crearOActualizarSolicitud(
-                estudianteId,
-                convocatoriaId,
-                ofertaIdsOrdenadas,
-                EstadoSolicitudEnum.ENTREGADA
-        );
+        return crearOActualizarSolicitud(estudianteId, convocatoriaId,
+                ofertaIdsOrdenadas, EstadoSolicitudEnum.ENTREGADA);
     }
 
     @Transactional
     public Solicitud guardarBorrador(Long estudianteId, Long convocatoriaId,
-                                    List<Long> ofertaIdsOrdenadas) {
-        return crearOActualizarSolicitud(
-                estudianteId,
-                convocatoriaId,
-                ofertaIdsOrdenadas,
-                EstadoSolicitudEnum.BORRADOR
-        );
+                                     List<Long> ofertaIdsOrdenadas) {
+        return crearOActualizarSolicitud(estudianteId, convocatoriaId,
+                ofertaIdsOrdenadas, EstadoSolicitudEnum.BORRADOR);
     }
 
-    private Solicitud crearOActualizarSolicitud(Long estudianteId,
-                                                Long convocatoriaId,
-                                                List<Long> ofertaIdsOrdenadas,
-                                                EstadoSolicitudEnum nuevoEstado) {
+    private Solicitud crearOActualizarSolicitud(Long estudianteId, Long convocatoriaId,
+                                                 List<Long> ofertaIdsOrdenadas,
+                                                 EstadoSolicitudEnum nuevoEstado) {
 
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new RuntimeException("ERROR: Estudiante no encontrado"));
@@ -86,13 +81,10 @@ public class SolicitudService {
 
         if (solicitudExistente.isPresent()) {
             solicitud = solicitudExistente.get();
-
             if (solicitud.getEstado() != EstadoSolicitudEnum.BORRADOR) {
                 throw new RuntimeException("La solicitud ya ha sido enviada y no puede modificarse");
             }
-
             preferenciaRepository.deleteBySolicitudId(solicitud.getId());
-
         } else {
             solicitud = new Solicitud();
             solicitud.setEstudiante(estudiante);
@@ -101,15 +93,14 @@ public class SolicitudService {
         }
 
         solicitud.setEstado(nuevoEstado);
-
         if (nuevoEstado == EstadoSolicitudEnum.ENTREGADA) {
             solicitud.setFechaPresentacion(LocalDate.now());
         } else {
             solicitud.setFechaPresentacion(null);
         }
-
         solicitudRepository.save(solicitud);
 
+        List<String> gradosEnOrden = new ArrayList<>();
         for (int i = 0; i < ofertaIdsOrdenadas.size(); i++) {
             Oferta oferta = ofertaRepository.findById(ofertaIdsOrdenadas.get(i))
                     .orElseThrow(() -> new RuntimeException("Oferta no encontrada"));
@@ -123,6 +114,22 @@ public class SolicitudService {
             preferencia.setOferta(oferta);
             preferencia.setOrdenPreferencia(i + 1);
             preferenciaRepository.save(preferencia);
+
+            gradosEnOrden.add(oferta.getGrado() + " — " + oferta.getUniversidad().getNombre());
+        }
+
+        // Email de confirmación solo al entregar (no al guardar borrador)
+        if (nuevoEstado == EstadoSolicitudEnum.ENTREGADA) {
+            try {
+                emailService.enviarConfirmacionSolicitud(
+                    estudiante.getEmail(),
+                    estudiante.getNombre(),
+                    convocatoria.getCursoAcademico(),
+                    gradosEnOrden
+                );
+            } catch (Exception e) {
+                System.err.println("Error enviando email de confirmación: " + e.getMessage());
+            }
         }
 
         return solicitud;
@@ -145,8 +152,7 @@ public class SolicitudService {
     }
 
     private static final Set<String> ASIGNATURAS_COMUNES = Set.of(
-        "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas"
-    );
+            "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas");
 
     @Transactional
     public void guardarNotas(Long estudianteId, List<NotaAsignatura> notas) {
@@ -168,5 +174,9 @@ public class SolicitudService {
 
         estudiante.setNotaBase(notaBase);
         estudianteRepository.save(estudiante);
+    }
+
+    public List<SolicitudRecibidaDTO> obtenerSolicitudesParaUniversidad(Long univId) {
+        return solicitudRepository.findSolicitudesByUniversidadId(univId);
     }
 }
