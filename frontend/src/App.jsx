@@ -11,8 +11,11 @@ import VerResultados from './pages/solicitudes/VerResultados'
 import UniversidadInicio from './pages/universidad/UniversidadInicio'
 import PublicarOferta from './pages/universidad/PublicarOferta'
 import MisOfertas from './pages/universidad/MisOfertas'
+<<<<<<< HEAD
 import GradosPublicos from './pages/publico/GradosPublicos'
 import SolicitudesRecibidas from './pages/universidad/SolicitudesRecibidas'
+=======
+>>>>>>> origin/feature/lanzar_asignacion-carmen
 import AdminPanel from './pages/admin/AdminPanel'
 
 function App() {
@@ -34,7 +37,10 @@ function App() {
         <Route path="/universidad/inicio" element={<UniversidadInicio />} />
         <Route path="/universidad/publicar-oferta" element={<PublicarOferta />} />
         <Route path="/universidad/mis-ofertas" element={<MisOfertas />} />
+<<<<<<< HEAD
         <Route path="/universidad/solicitudes/:univId" element={<SolicitudesRecibidas />} />
+=======
+>>>>>>> origin/feature/lanzar_asignacion-carmen
         <Route path="/admin/panel" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>

@@ -30,24 +30,58 @@ public class ConvocatoriaService {
         return convocatoriaRepository.findByEstado(EstadoConvocatoriaEnum.ABIERTA);
     }
 
-    public Convocatoria guardar(Convocatoria convocatoria) {
+    public Convocatoria crearConvocatoria(String cursoAcademico,
+                                          LocalDate fechaApertura,
+                                          LocalDate fechaCierre) {
+        if (!fechaCierre.isAfter(fechaApertura)) {
+            throw new RuntimeException("La fecha de cierre debe ser posterior a la fecha de apertura");
+        }
+
+        if (convocatoriaRepository.existsByFechaCierreConvocatoriaAfter(fechaApertura)) {
+            throw new RuntimeException(
+                "La fecha de apertura de la nueva convocatoria debe ser posterior " +
+                "a la fecha de cierre de la convocatoria anterior"
+            );
+        }
+
+        Convocatoria convocatoria = new Convocatoria();
+        convocatoria.setCursoAcademico(cursoAcademico);
+        convocatoria.setFechaApertura(fechaApertura);
+        convocatoria.setFechaCierreConvocatoria(fechaCierre);
+
+        if (!LocalDate.now().isBefore(fechaApertura)) {
+            convocatoria.setEstado(EstadoConvocatoriaEnum.ABIERTA);
+        } else {
+            convocatoria.setEstado(EstadoConvocatoriaEnum.PENDIENTE);
+        }
+
         return convocatoriaRepository.save(convocatoria);
     }
 
-    // Comprueba cada minuto si alguna convocatoria abierta ha superado su fecha de cierre
-    @Scheduled(fixedRate = 60000)
-    public void cerrarConvocatoriasVencidas() {
-        Optional<Convocatoria> convocatoriaOpt =
+    @Scheduled(fixedDelay = 60000, initialDelay = 10000)
+    public void actualizarEstadoConvocatorias() {
+        LocalDate hoy = LocalDate.now();
+
+        List<Convocatoria> todas = convocatoriaRepository.findAll();
+        for (Convocatoria conv : todas) {
+            if (conv.getEstado() == EstadoConvocatoriaEnum.PENDIENTE
+                    && !hoy.isBefore(conv.getFechaApertura())) {
+                conv.setEstado(EstadoConvocatoriaEnum.ABIERTA);
+                convocatoriaRepository.save(conv);
+            }
+        }
+
+        Optional<Convocatoria> abiertaOpt =
                 convocatoriaRepository.findByEstado(EstadoConvocatoriaEnum.ABIERTA);
 
-        if (convocatoriaOpt.isEmpty()) return;
+        if (abiertaOpt.isEmpty()) return;
 
-        Convocatoria convocatoria = convocatoriaOpt.get();
-        if (!LocalDate.now().isAfter(convocatoria.getFechaCierreConvocatoria())) return;
+        Convocatoria abierta = abiertaOpt.get();
+        if (!hoy.isAfter(abierta.getFechaCierreConvocatoria())) return;
 
-        convocatoria.setEstado(EstadoConvocatoriaEnum.CERRADA);
-        convocatoriaRepository.save(convocatoria);
+        abierta.setEstado(EstadoConvocatoriaEnum.CERRADA);
+        convocatoriaRepository.save(abierta);
 
-        asignacionService.procesarAsignaciones(convocatoria.getId());
+        asignacionService.procesarAsignaciones(abierta.getId());
     }
 }

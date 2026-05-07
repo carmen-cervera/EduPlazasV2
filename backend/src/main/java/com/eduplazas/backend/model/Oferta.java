@@ -14,6 +14,7 @@ public class Oferta {
 
     private String grado;
     private int totalPlazas;
+    private Double notaCorte;
 
     @ManyToOne
     @JoinColumn(name = "universidad_id")
@@ -33,6 +34,8 @@ public class Oferta {
     public void setGrado(String grado) { this.grado = grado; }
     public int getTotalPlazas() { return totalPlazas; }
     public void setTotalPlazas(int totalPlazas) { this.totalPlazas = totalPlazas; }
+    public Double getNotaCorte() { return notaCorte; }
+    public void setNotaCorte(Double notaCorte) { this.notaCorte = notaCorte; }
     public Universidad getUniversidad() { return universidad; }
     public void setUniversidad(Universidad universidad) { this.universidad = universidad; }
     public Convocatoria getConvocatoria() { return convocatoria; }
