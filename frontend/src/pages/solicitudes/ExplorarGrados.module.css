@@ -2,7 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: Arial, sans-serif;
+  font-family: 'Poppins', Arial, sans-serif;
+  background-color: #f4f6fb;
 }
 
 .header {
@@ -34,7 +35,7 @@
 
 .sidebar {
   width: 240px;
-  background-color: #d9d9d9;
+  background-color: #2a3f8f;
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
@@ -53,43 +54,106 @@
   color: white;
   font-weight: bold;
   word-break: break-word;
+  font-size: 0.85rem;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
 .button {
-  background-color: #3552a5;
-  color: white;
+  background-color: white;
+  color: #3552a5;
   border: none;
   border-radius: 8px;
-  padding: 14px;
+  padding: 12px 16px;
   font-weight: bold;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.button:hover {
+  background-color: #e8ecf8;
 }
 
 .main {
   flex: 1;
   padding: 40px;
-  background-color: #f4f4f4;
 }
 
 .card {
   background: white;
-  border: 2px solid #3552a5;
-  border-radius: 12px;
-  padding: 25px;
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 2px 16px rgba(53, 82, 165, 0.08);
+}
+
+.infoInvitado {
+  color: #3552a5;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
 }
 
 .convocatoria {
   color: #3552a5;
-  font-size: 1.1rem;
   margin-bottom: 20px;
+  background-color: #eef1fb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
 }
 
+.error {
+  color: #c0392b;
+  font-weight: 600;
+  background: #fdf0ee;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── Chips de filtros activos ── */
+.chipsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eef1fb;
+  color: #3552a5;
+  border: 1.5px solid #c0ccee;
+  border-radius: 20px;
+  padding: 4px 12px 4px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.chipX {
+  background: none;
+  border: none;
+  color: #3552a5;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.chipX:hover {
+  color: #c0392b;
+}
+
+/* ── Tabla ── */
 .tableContainer {
   overflow-x: auto;
 }
@@ -97,22 +161,91 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  padding: 14px;
-  text-align: left;
-  border-bottom: 1px solid #d9d9d9;
+  font-size: 0.95rem;
 }
 
 .table th {
+  background-color: #f0f3fb;
   color: #3552a5;
-  font-size: 1rem;
+  padding: 10px 14px 8px;
+  text-align: left;
+  border-bottom: 2px solid #d0d8f0;
+  vertical-align: top;
 }
 
-.error {
-  color: red;
-  font-weight: bold;
-  margin-bottom: 15px;
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  vertical-align: middle;
 }
+
+.table tbody tr:hover {
+  background-color: #f7f9ff;
+}
+
+/* ── Filtros en cabecera ── */
+.thLabel {
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.filtroTexto {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1.5px solid #c8d2ee;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #333;
+  box-sizing: border-box;
+  background: white;
+}
+
+.filtroTexto:focus {
+  outline: none;
+  border-color: #3552a5;
+}
+
+.filtroSelect {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1.5px solid #c8d2ee;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #333;
+  background: white;
+  box-sizing: border-box;
+}
+
+.filtroSelect:focus {
+  outline: none;
+  border-color: #3552a5;
+}
+
+.filtroRango {
+  display: flex;
+  gap: 6px;
+}
+
+.filtroRango .filtroTexto {
+  width: 70px;
+}
+
+/* ── Badges de rama ── */
+.ramaBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rama_Ciencias_de_la_Salud       { background: #fde8f0; color: #b5235a; }
+.rama_Ciencias                   { background: #e8f4fd; color: #1a6fa8; }
+.rama_Ingeniería_y_Arquitectura  { background: #e8f0e8; color: #2e6b2e; }
+.rama_Ciencias_Sociales          { background: #fef3e2; color: #a06000; }
+.rama_Arte_y_Humanidades         { background: #f0e8fd; color: #6b2ea8; }

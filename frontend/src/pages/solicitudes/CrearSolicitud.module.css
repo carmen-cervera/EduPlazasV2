@@ -2,7 +2,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  font-family: Arial, sans-serif;
+  font-family: 'Poppins', Arial, sans-serif;
+  background-color: #f4f6fb;
 }
 
 .header {
@@ -30,12 +31,11 @@
 .content {
   flex: 1;
   display: flex;
-
 }
 
 .sidebar {
   width: 240px;
-  background-color: #d9d9d9;
+  background-color: #2a3f8f;
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
@@ -54,83 +54,166 @@
   color: white;
   font-weight: bold;
   word-break: break-word;
+  font-size: 0.85rem;
 }
 
-
-.button,
-.primaryButton {
-  background-color: #3552a5;
-  color: white;
+.button {
+  background-color: white;
+  color: #3552a5;
   border: none;
   border-radius: 8px;
   padding: 12px 16px;
   font-weight: bold;
   cursor: pointer;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.button:hover {
+  background-color: #e8ecf8;
+}
+
+.primaryButton {
+  background-color: #3552a5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.primaryButton:hover {
+  background-color: #2a3f8f;
 }
 
 .main {
   flex: 1;
   padding: 40px;
-  background-size: cover;
-  background-position: center;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 2px solid #3552a5;
-  border-radius: 12px;
-  padding: 30px;
-  overflow-x: auto;
+  background: white;
+  border-radius: 16px;
+  padding: 40px 48px;
+  box-shadow: 0 2px 16px rgba(53, 82, 165, 0.08);
+  max-width: 780px;
+  margin: 0 auto;
 }
 
 .sectionTitle {
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 32px;
   text-align: center;
   color: #3552a5;
-  font-size: 2rem;
-  text-decoration: underline;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .convocatoria {
   color: #3552a5;
-  margin-bottom: 25px;
+  margin-bottom: 32px;
+  background-color: #eef1fb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
 }
 
+/* ── Secciones del formulario ── */
 .formulario {
-  max-width: 600px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 40px;
 }
 
-.label {
-  font-weight: bold;
-  color: #3552a5;
-  margin-bottom: 8px;
-  margin-top: 18px;
-}
-
-.select {
-  padding: 14px;
-  border: 2px solid #3552a5;
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: white;
-  color: #444;
-}
-
-.footerButtons {
-  margin-top: 40px;
+.seccion {
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  flex-direction: column;
+  gap: 16px;
 }
 
+.seccionTitulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #3552a5;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e6f5;
+  margin: 0;
+}
+
+/* ── Grid notas bachillerato ── */
+.notasGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.campoNota {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Materia específica (select + input en fila) ── */
+.campoEspecifica {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filaEspecifica {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.filaEspecifica .select {
+  flex: 1;
+}
+
+.filaEspecifica .inputNota {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+/* ── Labels e inputs ── */
+.label {
+  font-weight: 600;
+  color: #444;
+  font-size: 0.88rem;
+}
+
+.select,
+.inputNota {
+  padding: 10px 14px;
+  border: 1.5px solid #c8d2ee;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: white;
+  color: #333;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.select:focus,
+.inputNota:focus {
+  outline: none;
+  border-color: #3552a5;
+}
+
+/* ── Buscador de grados ── */
 .buscadorContainer {
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
 .inputWrapper {
@@ -150,33 +233,35 @@
   background: transparent;
   border: none;
   color: #3552a5;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: bold;
   cursor: pointer;
+  line-height: 1;
 }
 
 .opcionesBuscador {
   background-color: white;
-  border: 2px solid #3552a5;
+  border: 1.5px solid #3552a5;
   border-radius: 8px;
-  margin-top: 6px;
+  margin-top: 4px;
   max-height: 220px;
   overflow-y: auto;
   z-index: 10;
+  box-shadow: 0 4px 12px rgba(53, 82, 165, 0.12);
 }
 
 .opcionBuscador {
   width: 100%;
-  padding: 12px;
+  padding: 12px 16px;
   border: none;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #f0f0f0;
   background-color: white;
   text-align: left;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  color: #444;
+  gap: 2px;
+  color: #333;
 }
 
 .opcionBuscador:hover {
@@ -184,24 +269,42 @@
 }
 
 .opcionBuscador span {
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.82rem;
+  color: #888;
 }
 
 .sinResultados {
   margin: 0;
-  padding: 12px;
-  color: #777;
+  padding: 12px 16px;
+  color: #999;
+  font-size: 0.9rem;
 }
 
+/* ── Footer ── */
+.footerButtons {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* ── Mensajes ── */
 .error {
-  color: red;
-  font-weight: bold;
+  color: #c0392b;
+  font-weight: 600;
   text-align: center;
+  background: #fdf0ee;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }
 
 .success {
-  color: green;
-  font-weight: bold;
+  color: #1a7a4a;
+  font-weight: 600;
   text-align: center;
+  background: #edfaf3;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
 }

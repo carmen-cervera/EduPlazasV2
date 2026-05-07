@@ -118,7 +118,6 @@ public class SolicitudService {
             gradosEnOrden.add(oferta.getGrado() + " — " + oferta.getUniversidad().getNombre());
         }
 
-<<<<<<< HEAD
         // Email de confirmación solo al entregar (no al guardar borrador)
         if (nuevoEstado == EstadoSolicitudEnum.ENTREGADA) {
             try {
@@ -131,7 +130,8 @@ public class SolicitudService {
             } catch (Exception e) {
                 System.err.println("Error enviando email de confirmación: " + e.getMessage());
             }
-=======
+        }
+        
         // Email de confirmación solo al entregar (no al guardar borrador)
         if (nuevoEstado == EstadoSolicitudEnum.ENTREGADA) {
             try {

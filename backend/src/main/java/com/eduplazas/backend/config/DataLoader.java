@@ -117,64 +117,65 @@ public class DataLoader {
             convocatoriaRepo.save(conv);
 
             // UCM
-            oferta(ofertaRepo, criterioRepo, conv, ucm, "Medicina", 80,
-                new String[]{"Biología:0.2", "Química:0.2"});
-            oferta(ofertaRepo, criterioRepo, conv, ucm, "Derecho", 200,
-                new String[]{"Historia de España:0.2", "Latín II:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, ucm, "Psicología", 150,
-                new String[]{"Biología:0.2", "Historia de la Filosofía:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, ucm, "Matemáticas", 100,
-                new String[]{"Matemáticas II:0.2"});
-            oferta(ofertaRepo, criterioRepo, conv, ucm, "Bellas Artes", 60,
-                new String[]{"Historia del Arte:0.2", "Dibujo Artístico II:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, ucm, "Medicina", "Ciencias de la Salud", 80,
+            new String[]{"Biología:0.2", "Química:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, ucm, "Derecho", "Ciencias Sociales", 200,
+            new String[]{"Historia de España:0.2", "Latín II:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, ucm, "Psicología", "Ciencias de la Salud", 150,
+            new String[]{"Biología:0.2", "Historia de la Filosofía:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, ucm, "Matemáticas", "Ciencias", 100,
+            new String[]{"Matemáticas II:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, ucm, "Bellas Artes", "Arte y Humanidades", 60,
+            new String[]{"Historia del Arte:0.2", "Dibujo Artístico II:0.2"});
 
             // UPM
-            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Informática", 120,
-                new String[]{"Matemáticas II:0.2", "Física:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Industrial", 100,
-                new String[]{"Matemáticas II:0.2", "Física:0.2"});
-            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Aeroespacial", 80,
-                new String[]{"Matemáticas II:0.2", "Física:0.2"});
-            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería de Telecomunicación", 90,
-                new String[]{"Matemáticas II:0.2", "Física:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Informática", "Ingeniería y Arquitectura", 120,
+            new String[]{"Matemáticas II:0.2", "Física:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Industrial", "Ingeniería y Arquitectura", 100,
+            new String[]{"Matemáticas II:0.2", "Física:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería Aeroespacial", "Ingeniería y Arquitectura", 80,
+            new String[]{"Matemáticas II:0.2", "Física:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, upm, "Ingeniería de Telecomunicación", "Ingeniería y Arquitectura", 90,
+            new String[]{"Matemáticas II:0.2", "Física:0.1"});
 
             // UAM
-            oferta(ofertaRepo, criterioRepo, conv, uam, "Biología", 120,
-                new String[]{"Biología:0.2", "Química:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uam, "Física", 80,
-                new String[]{"Física:0.2", "Matemáticas II:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uam, "Química", 80,
-                new String[]{"Química:0.2", "Biología:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uam, "Economía", 150,
-                new String[]{"Matemáticas Apl. CC. Soc. II:0.2"});
+            oferta(ofertaRepo, criterioRepo, conv, uam, "Biología", "Ciencias de la Salud", 120,
+            new String[]{"Biología:0.2", "Química:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uam, "Física", "Ciencias", 80,
+            new String[]{"Física:0.2", "Matemáticas II:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uam, "Química", "Ciencias", 80,
+            new String[]{"Química:0.2", "Biología:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uam, "Economía", "Ciencias Sociales", 150,
+            new String[]{"Matemáticas Apl. CC. Soc. II:0.2"});
 
             // UC3M
-            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Administración y Dirección de Empresas", 180,
-                new String[]{"Matemáticas Apl. CC. Soc. II:0.2", "Empresa y Diseño de Modelos de Negocio:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Ingeniería Informática", 110,
-                new String[]{"Matemáticas II:0.2", "Tecnología e Ingeniería II:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Ciencias Políticas", 100,
-                new String[]{"Historia de España:0.2", "Geografía:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Periodismo", 90,
-                new String[]{"Historia de España:0.1", "Historia de la Filosofía:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Administración y Dirección de Empresas", "Ciencias Sociales", 180,
+            new String[]{"Matemáticas Apl. CC. Soc. II:0.2", "Empresa y Diseño de Modelos de Negocio:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Ingeniería Informática", "Ingeniería y Arquitectura", 110,
+            new String[]{"Matemáticas II:0.2", "Tecnología e Ingeniería II:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Ciencias Políticas", "Ciencias Sociales", 100,
+            new String[]{"Historia de España:0.2", "Geografía:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, uc3m, "Periodismo", "Ciencias Sociales", 90,
+            new String[]{"Historia de España:0.1", "Historia de la Filosofía:0.1"});
 
             // URJC
-            oferta(ofertaRepo, criterioRepo, conv, urjc, "Comunicación Audiovisual", 100,
-                new String[]{"Historia del Arte:0.2", "Fundamentos Artísticos:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, urjc, "Enfermería", 120,
-                new String[]{"Biología:0.2", "Química:0.1"});
-            oferta(ofertaRepo, criterioRepo, conv, urjc, "Turismo", 130,
-                new String[]{"Geografía:0.2", "Historia de España:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, urjc, "Comunicación Audiovisual", "Arte y Humanidades", 100,
+            new String[]{"Historia del Arte:0.2", "Fundamentos Artísticos:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, urjc, "Enfermería", "Ciencias de la Salud", 120,
+            new String[]{"Biología:0.2", "Química:0.1"});
+            oferta(ofertaRepo, criterioRepo, conv, urjc, "Turismo", "Ciencias Sociales", 130,
+            new String[]{"Geografía:0.2", "Historia de España:0.1"});
 
             System.out.println("Datos de ejemplo cargados correctamente");
         };
     }
 
     private void oferta(OfertaRepository ofertaRepo, CriterioAdmisionRepository criterioRepo,
-                        Convocatoria conv, Universidad uni, String grado, int plazas,
-                        String[] criterios) {
+        Convocatoria conv, Universidad uni, String grado, String rama, int plazas,
+        String[] criterios) {
         Oferta o = new Oferta();
         o.setGrado(grado);
+        o.setRama(rama);
         o.setTotalPlazas(plazas);
         o.setUniversidad(uni);
         o.setConvocatoria(conv);

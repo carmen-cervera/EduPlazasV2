@@ -40,8 +40,9 @@ public class OfertaController {
                 }).toList();
             }
 
+            String rama = body.get("rama") != null ? body.get("rama").toString() : "";
             Oferta oferta = ofertaService.publicarOferta(representanteId, grado,
-                    totalPlazas, criterios);
+                    rama, totalPlazas, criterios);
             return ResponseEntity.ok(oferta);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

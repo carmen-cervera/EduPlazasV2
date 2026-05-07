@@ -36,7 +36,7 @@ public class OfertaService {
     }
 
     public Oferta publicarOferta(Long representanteId, String grado,
-                                  int totalPlazas, List<CriterioAdmision> criterios) {
+        String rama, int totalPlazas, List<CriterioAdmision> criterios) {
 
         RepresentanteUniversidad representante = representanteRepository.findById(representanteId)
                 .orElseThrow(() -> new RuntimeException("Representante no encontrado"));
@@ -52,6 +52,7 @@ public class OfertaService {
         Oferta oferta = new Oferta();
         oferta.setGrado(grado);
         oferta.setTotalPlazas(totalPlazas);
+        oferta.setRama(rama);
         oferta.setUniversidad(representante.getUniversidad());
         oferta.setConvocatoria(convocatoria);
 

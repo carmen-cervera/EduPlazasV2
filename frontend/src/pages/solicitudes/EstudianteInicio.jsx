@@ -44,35 +44,35 @@ function EstudianteInicio() {
       </header>
 
       <div className={styles.content}>
-        <aside className={styles.sidebar}>
+      <aside className={styles.sidebar}>
+        <div>
           <div className={styles.userBox}>
             <img src={avatar} alt="EduPlazas" className={styles.avatar} />
             <p className={styles.email}>{usuario?.email}</p>
           </div>
-
           <div className={styles.menu}>
             <button className={styles.button} onClick={() => navigate('/estudiante/grados')}>
               Explorar grados
             </button>
             {!solicitud && (
-            <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
-              Nueva solicitud
-            </button>
+              <button className={styles.button} onClick={() => navigate('/estudiante/solicitud')}>
+                Nueva solicitud
+              </button>
             )}
             {solicitud?.estado === 'BORRADOR' && (
-            <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
-              Mi borrador
-            </button>
+              <button className={styles.button} onClick={() => navigate('/estudiante/borradores')}>
+                Mi borrador
+              </button>
             )}
             <button className={styles.button} onClick={() => navigate('/estudiante/ver-solicitud')}>
               Mis solicitudes
             </button>
           </div>
-
-          <button className={styles.button} onClick={cerrarSesion}>
-            Log out
-          </button>
-        </aside>
+        </div>
+        <button className={styles.button} onClick={cerrarSesion}>
+          Log out
+        </button>
+      </aside>
 
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Convocatoria abierta</h2>

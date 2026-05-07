@@ -9,6 +9,7 @@ function PublicarOferta() {
   const usuario = JSON.parse(localStorage.getItem('usuario'))
 
   const [grado, setGrado] = useState('')
+  const [rama, setRama] = useState('')
   const [totalPlazas, setTotalPlazas] = useState('')
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
@@ -44,9 +45,14 @@ function PublicarOferta() {
     e.preventDefault()
     setError('')
     setExito('')
+    setRama('')
 
     if (!grado.trim()) {
       setError('El nombre del grado es obligatorio')
+      return
+    }
+    if (!rama) {
+      setError('La rama de conocimiento es obligatoria')
       return
     }
     if (!totalPlazas || parseInt(totalPlazas) <= 0) {
@@ -66,6 +72,7 @@ function PublicarOferta() {
       await publicarOferta(
         usuario.id,
         grado.trim(),
+        rama,
         parseInt(totalPlazas),
         criteriosValidos.map(c => ({ asignatura: c.asignatura, peso: Number(c.peso) }))
       )
@@ -128,6 +135,22 @@ function PublicarOferta() {
                   value={grado}
                   onChange={e => setGrado(e.target.value)}
                 />
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Rama de conocimiento</label>
+                <select
+                  className={styles.input}
+                  value={rama}
+                  onChange={e => setRama(e.target.value)}
+                >
+                  <option value="">Selecciona rama</option>
+                  <option value="Arte y Humanidades">Arte y Humanidades</option>
+                  <option value="Ciencias">Ciencias</option>
+                  <option value="Ciencias de la Salud">Ciencias de la Salud</option>
+                  <option value="Ciencias Sociales">Ciencias Sociales</option>
+                  <option value="Ingeniería y Arquitectura">Ingeniería y Arquitectura</option>
+                </select>
               </div>
 
               <div className={styles.field}>

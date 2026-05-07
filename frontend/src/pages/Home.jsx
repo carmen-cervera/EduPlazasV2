@@ -12,17 +12,17 @@ function Home() {
       </header>
 
       <div className={styles.fondo}>
-        <div className={styles.botones}>
-          <button className={styles.btnEstudiantes} onClick={() => navigate('/estudiantes/login')}>
-            ESTUDIANTES
-          </button>
-          <button className={styles.btnUniversidades} onClick={() => navigate('/universidades/login')}>
-            UNIVERSIDADES
-          </button>
-          <button className={styles.btnInvitado} onClick={() => navigate('/grados-publicos')}>
-            EXPLORAR GRADOS
-          </button>
-        </div>
+      <div className={styles.botones}>
+        <button className={styles.btnInvitado} onClick={() => navigate('/grados-publicos')}>
+          EXPLORAR GRADOS
+        </button>
+        <button className={styles.btnEstudiantes} onClick={() => navigate('/estudiantes/login')}>
+          ESTUDIANTES
+        </button>
+        <button className={styles.btnUniversidades} onClick={() => navigate('/universidades/login')}>
+          UNIVERSIDADES
+        </button>
+      </div>
       </div>
     </div>
   )

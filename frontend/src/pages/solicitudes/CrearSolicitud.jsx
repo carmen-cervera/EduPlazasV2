@@ -11,9 +11,7 @@ function CrearSolicitud() {
 
   const [convocatoria, setConvocatoria] = useState(null)
   const [ofertas, setOfertas] = useState([])
-  const [prioridad1, setPrioridad1] = useState('')
-  const [prioridad2, setPrioridad2] = useState('')
-  const [prioridad3, setPrioridad3] = useState('')
+  const [prioridades, setPrioridades] = useState(Array(12).fill(''))
   const [mensaje, setMensaje] = useState('')
   const [error, setError] = useState('')
   const [notas, setNotas] = useState([
@@ -71,9 +69,13 @@ function CrearSolicitud() {
           const preferenciasOrdenadas = [...solicitudExistente.preferencias]
             .sort((a, b) => a.ordenPreferencia - b.ordenPreferencia)
 
-          setPrioridad1(preferenciasOrdenadas[0]?.oferta?.id ? String(preferenciasOrdenadas[0].oferta.id) : '')
-          setPrioridad2(preferenciasOrdenadas[1]?.oferta?.id ? String(preferenciasOrdenadas[1].oferta.id) : '')
-          setPrioridad3(preferenciasOrdenadas[2]?.oferta?.id ? String(preferenciasOrdenadas[2].oferta.id) : '')
+            const nuevasPrioridades = Array(12).fill('')
+            preferenciasOrdenadas.forEach((pref, i) => {
+              if (i < 12 && pref?.oferta?.id) {
+                nuevasPrioridades[i] = String(pref.oferta.id)
+              }
+            })
+            setPrioridades(nuevasPrioridades)
         }
 
         if (solicitudExistente.estado !== 'BORRADOR') {
@@ -131,7 +133,7 @@ function CrearSolicitud() {
 
 
   const obtenerIdsSeleccionados = () => {
-    const idsSeleccionados = [prioridad1, prioridad2, prioridad3].filter(id => id !== '')
+    const idsSeleccionados = prioridades.filter(id => id !== '')
 
     if (idsSeleccionados.length === 0) {
       setError('Debes seleccionar al menos una opción')
@@ -375,103 +377,115 @@ const handleGuardarBorrador = async () => {
 
         <main className={styles.main}>
           <div className={styles.card}>
-            <h2 className={styles.sectionTitle}>Selección</h2>
+            <h2 className={styles.sectionTitle}>Nueva Solicitud</h2>
 
             {error && <p className={styles.error}>{error}</p>}
             {mensaje && <p className={styles.success}>{mensaje}</p>}
 
+            {convocatoria && (
+              <p className={styles.convocatoria}>
+                <strong>Convocatoria abierta:</strong> {convocatoria.cursoAcademico}
+              </p>
+            )}
+
             <div className={styles.formulario}>
-              {convocatoria && (
-                <p className={styles.convocatoria}>
-                  <strong>Convocatoria abierta:</strong> {convocatoria.cursoAcademico}
-                </p>
-              )}
 
-              <h3 className={styles.label}>Notas EvAU</h3>
-
-              {notas.map((nota, index) => (
-                <div key={index}>
-                  <label className={styles.label}>{nota.asignatura}:</label>
-                  <input
-                    className={styles.select}
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.01"
-                    placeholder="0 - 10"
-                    value={nota.nota}
-                    onChange={(e) => handleNotaChange(index, e.target.value)}
-                  />
+              {/* Sección 1: Notas de bachillerato */}
+              <div className={styles.seccion}>
+                <h3 className={styles.seccionTitulo}>Notas de bachillerato</h3>
+                <div className={styles.notasGrid}>
+                  {notas.map((nota, index) => (
+                    <div key={index} className={styles.campoNota}>
+                      <label className={styles.label}>{nota.asignatura}</label>
+                      <input
+                        className={styles.inputNota}
+                        type="number"
+                        min="0"
+                        max="10"
+                        step="0.01"
+                        placeholder="0 – 10"
+                        value={nota.nota}
+                        onChange={(e) => handleNotaChange(index, e.target.value)}
+                      />
+                    </div>
+                  ))}
                 </div>
+              </div>
+
+              {/* Sección 2: Materias específicas */}
+              <div className={styles.seccion}>
+                <h3 className={styles.seccionTitulo}>Materias específicas</h3>
+
+                <div className={styles.campoEspecifica}>
+                  <label className={styles.label}>Materia específica 1</label>
+                  <div className={styles.filaEspecifica}>
+                    <select
+                      className={styles.select}
+                      value={especifica1.asignatura}
+                      onChange={(e) => setEspecifica1({ ...especifica1, asignatura: e.target.value })}
+                    >
+                      <option value="">Selecciona asignatura</option>
+                      {ASIGNATURAS_ESPECIFICAS.map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    <input
+                      className={styles.inputNota}
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.01"
+                      placeholder="0 – 10"
+                      value={especifica1.nota}
+                      onChange={(e) => setEspecifica1({ ...especifica1, nota: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.campoEspecifica}>
+                  <label className={styles.label}>Materia específica 2</label>
+                  <div className={styles.filaEspecifica}>
+                    <select
+                      className={styles.select}
+                      value={especifica2.asignatura}
+                      onChange={(e) => setEspecifica2({ ...especifica2, asignatura: e.target.value })}
+                    >
+                      <option value="">Selecciona asignatura</option>
+                      {ASIGNATURAS_ESPECIFICAS.map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                    <input
+                      className={styles.inputNota}
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="0.01"
+                      placeholder="0 – 10"
+                      value={especifica2.nota}
+                      onChange={(e) => setEspecifica2({ ...especifica2, nota: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sección 3: Preferencias de grado */}
+              <div className={styles.seccion}>
+                <h3 className={styles.seccionTitulo}>Preferencias de grado</h3>
+                {prioridades.map((valor, index) => (
+                <BuscadorOferta
+                  key={index}
+                  label={`Grado de prioridad ${index + 1}`}
+                  value={valor}
+                  onChange={(nuevoId) => {
+                    const nuevasPrioridades = [...prioridades]
+                    nuevasPrioridades[index] = nuevoId
+                    setPrioridades(nuevasPrioridades)
+                  }}
+                />
               ))}
-
-              <div>
-                <label className={styles.label}>Materia específica 1:</label>
-                <select
-                  className={styles.select}
-                  value={especifica1.asignatura}
-                  onChange={(e) => setEspecifica1({ ...especifica1, asignatura: e.target.value })}
-                >
-                  <option value="">Selecciona asignatura</option>
-                  {ASIGNATURAS_ESPECIFICAS.map(a => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-
-                <input
-                  className={styles.select}
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.01"
-                  placeholder="0 - 10"
-                  value={especifica1.nota}
-                  onChange={(e) => setEspecifica1({ ...especifica1, nota: e.target.value })}
-                />
               </div>
 
-              <div>
-                <label className={styles.label}>Materia específica 2:</label>
-                <select
-                  className={styles.select}
-                  value={especifica2.asignatura}
-                  onChange={(e) => setEspecifica2({ ...especifica2, asignatura: e.target.value })}
-                >
-                  <option value="">Selecciona asignatura</option>
-                  {ASIGNATURAS_ESPECIFICAS.map(a => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
-                </select>
-
-                <input
-                  className={styles.select}
-                  type="number"
-                  min="0"
-                  max="10"
-                  step="0.01"
-                  placeholder="0 - 10"
-                  value={especifica2.nota}
-                  onChange={(e) => setEspecifica2({ ...especifica2, nota: e.target.value })}
-                />
-              </div>
-
-              <BuscadorOferta
-                label="Grado de prioridad 1:"
-                value={prioridad1}
-                onChange={setPrioridad1}
-              />
-
-              <BuscadorOferta
-                label="Grado de prioridad 2:"
-                value={prioridad2}
-                onChange={setPrioridad2}
-              />
-
-              <BuscadorOferta
-                label="Grado de prioridad 3:"
-                value={prioridad3}
-                onChange={setPrioridad3}
-              />
             </div>
 
             <div className={styles.footerButtons}>
@@ -481,7 +495,6 @@ const handleGuardarBorrador = async () => {
               <button className={styles.primaryButton} onClick={handleEnviarSolicitud}>
                 Enviar
               </button>
-
             </div>
           </div>
         </main>
