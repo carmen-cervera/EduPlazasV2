@@ -29,8 +29,8 @@ public class DataLoader {
             // Convocatoria
             Convocatoria conv = new Convocatoria();
             conv.setCursoAcademico("2025-2026");
-            conv.setFechaApertura(LocalDate.of(2025, 6, 1));
-            conv.setFechaCierreConvocatoria(LocalDate.of(2025, 6, 30));
+            conv.setFechaApertura(LocalDate.of(2026, 6, 1));
+            conv.setFechaCierreConvocatoria(LocalDate.of(2026, 6, 30));
             conv.setEstado(EstadoConvocatoriaEnum.ABIERTA);
             convocatoriaRepo.save(conv);
 

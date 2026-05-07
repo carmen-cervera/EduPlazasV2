@@ -4,6 +4,7 @@ import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.eduplazas.backend.dto.SolicitudRecibidaDTO;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -20,11 +21,11 @@ public class SolicitudService {
     private final PreferenciaRepository preferenciaRepository;
 
     public SolicitudService(SolicitudRepository solicitudRepository,
-                            EstudianteRepository estudianteRepository,
-                            ConvocatoriaRepository convocatoriaRepository,
-                            OfertaRepository ofertaRepository,
-                            NotaAsignaturaRepository notaAsignaturaRepository,
-                            PreferenciaRepository preferenciaRepository) {
+            EstudianteRepository estudianteRepository,
+            ConvocatoriaRepository convocatoriaRepository,
+            OfertaRepository ofertaRepository,
+            NotaAsignaturaRepository notaAsignaturaRepository,
+            PreferenciaRepository preferenciaRepository) {
         this.solicitudRepository = solicitudRepository;
         this.estudianteRepository = estudianteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
@@ -35,7 +36,7 @@ public class SolicitudService {
 
     @Transactional
     public Solicitud crearSolicitud(Long estudianteId, Long convocatoriaId,
-                                    List<Long> ofertaIdsOrdenadas) {
+            List<Long> ofertaIdsOrdenadas) {
 
         Estudiante estudiante = estudianteRepository.findById(estudianteId)
                 .orElseThrow(() -> new RuntimeException("ERROR: Estudiante no encontrado"));
@@ -99,8 +100,7 @@ public class SolicitudService {
     }
 
     private static final Set<String> ASIGNATURAS_COMUNES = Set.of(
-        "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas"
-    );
+            "Lengua Castellana", "Historia de España", "Inglés", "Matemáticas");
 
     @Transactional
     public void guardarNotas(Long estudianteId, List<NotaAsignatura> notas) {
@@ -122,5 +122,9 @@ public class SolicitudService {
 
         estudiante.setNotaBase(notaBase);
         estudianteRepository.save(estudiante);
+    }
+
+    public List<SolicitudRecibidaDTO> obtenerSolicitudesParaUniversidad(Long univId) {
+        return solicitudRepository.findSolicitudesByUniversidadId(univId);
     }
 }
