@@ -30,6 +30,15 @@ function UniversidadInicio() {
       <div className={styles.content}>
         <aside className={styles.sidebar}>
           <div className={styles.userBox}>
+            <svg
+              className={styles.institutionIcon}
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M12 3 3 8v2h18V8z" />
+              <path d="M5 11h2v6H5zM9 11h2v6H9zM13 11h2v6h-2zM17 11h2v6h-2z" />
+              <path d="M3 18h18v3H3z" />
+            </svg>
             <p className={styles.email}>{usuario?.email}</p>
             <p className={styles.universidad}>{usuario?.universidad?.nombre}</p>
           </div>

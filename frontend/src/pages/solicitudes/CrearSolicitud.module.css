@@ -31,15 +31,22 @@
 .content {
   flex: 1;
   display: flex;
+  align-items: flex-start;
+  overflow: hidden;
 }
 
 .sidebar {
   width: 240px;
-  background-color: #2a3f8f;
+  background-color: #d9d9d9;
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 100px);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .userBox {
@@ -48,18 +55,21 @@
 
 .avatar {
   margin-bottom: 10px;
+  filter: brightness(0) saturate(100%) invert(26%) sepia(28%) saturate(1406%) hue-rotate(196deg) brightness(94%) contrast(92%);
 }
 
 .email {
-  color: white;
+  color: #2a3f8f;
   font-weight: bold;
   word-break: break-word;
   font-size: 0.85rem;
 }
 
 .button {
-  background-color: white;
-  color: #3552a5;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #3552a5;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   padding: 12px 16px;
@@ -68,10 +78,20 @@
   margin-bottom: 10px;
   font-size: 0.9rem;
   transition: background-color 0.2s;
+  margin-top: 20pt;
 }
 
 .button:hover {
-  background-color: #e8ecf8;
+  background-color: #4a67c2;
+}
+
+.sidebar > .button {
+  background-color: #6f87d8;
+  color: #ffffff;
+}
+
+.sidebar > .button:hover {
+  background-color: #86a0eb;
 }
 
 .primaryButton {
@@ -87,12 +107,15 @@
 }
 
 .primaryButton:hover {
-  background-color: #2a3f8f;
+  background-color: #4a67c2;
 }
 
 .main {
   flex: 1;
   padding: 40px;
+  overflow-y: auto;
+  height: calc(100vh - Xpx); /* 100px estudiantes, 80px universidades */
+  box-sizing: border-box;
 }
 
 .card {

@@ -64,4 +64,13 @@ public class OfertaController {
     public ResponseEntity<List<Oferta>> obtenerTodas() {
         return ResponseEntity.ok(ofertaService.obtenerTodas());
     }
+
+    @GetMapping("/panel-universidad")
+        public ResponseEntity<?> obtenerPanelUniversidad(@RequestParam Long representanteId) {
+            try {
+                return ResponseEntity.ok(ofertaService.obtenerPanelUniversidad(representanteId));
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }
 }

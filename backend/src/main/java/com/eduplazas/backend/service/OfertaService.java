@@ -4,7 +4,10 @@ import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.repository.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OfertaService {
@@ -14,17 +17,23 @@ public class OfertaService {
     private final ConvocatoriaRepository convocatoriaRepository;
     private final CriterioAdmisionRepository criterioAdmisionRepository;
     private final EmailService emailService;
+    private final PreferenciaRepository preferenciaRepository;
+    private final AsignacionService asignacionService;
 
     public OfertaService(OfertaRepository ofertaRepository,
                          RepresentanteUniversidadRepository representanteRepository,
                          ConvocatoriaRepository convocatoriaRepository,
                          CriterioAdmisionRepository criterioAdmisionRepository,
-                         EmailService emailService) {
+                         EmailService emailService,
+                         PreferenciaRepository preferenciaRepository,
+                         AsignacionService asignacionService) {
         this.ofertaRepository = ofertaRepository;
         this.representanteRepository = representanteRepository;
         this.convocatoriaRepository = convocatoriaRepository;
         this.criterioAdmisionRepository = criterioAdmisionRepository;
         this.emailService = emailService;
+        this.preferenciaRepository = preferenciaRepository;
+        this.asignacionService = asignacionService;
     }
 
     public List<Oferta> obtenerTodas() {
@@ -35,8 +44,8 @@ public class OfertaService {
         return ofertaRepository.findById(id).orElse(null);
     }
 
-    public Oferta publicarOferta(Long representanteId, String grado,
-        String rama, int totalPlazas, List<CriterioAdmision> criterios) {
+    public Oferta publicarOferta(Long representanteId, String grado, String rama,
+                                  int totalPlazas, List<CriterioAdmision> criterios) {
 
         RepresentanteUniversidad representante = representanteRepository.findById(representanteId)
                 .orElseThrow(() -> new RuntimeException("Representante no encontrado"));
@@ -51,8 +60,8 @@ public class OfertaService {
 
         Oferta oferta = new Oferta();
         oferta.setGrado(grado);
-        oferta.setTotalPlazas(totalPlazas);
         oferta.setRama(rama);
+        oferta.setTotalPlazas(totalPlazas);
         oferta.setUniversidad(representante.getUniversidad());
         oferta.setConvocatoria(convocatoria);
 
@@ -69,7 +78,6 @@ public class OfertaService {
                 .toList();
         }
 
-        // Email de confirmación al representante
         try {
             emailService.enviarConfirmacionOferta(
                 representante.getEmail(),
@@ -94,5 +102,38 @@ public class OfertaService {
                 .filter(o -> o.getUniversidad() != null &&
                              o.getUniversidad().getId().equals(universidadId))
                 .toList();
+    }
+
+    public List<Map<String, Object>> obtenerPanelUniversidad(Long representanteId) {
+        List<Oferta> ofertas = obtenerPorRepresentante(representanteId);
+        List<Map<String, Object>> panel = new ArrayList<>();
+    
+        for (Oferta oferta : ofertas) {
+            List<Map<String, Object>> tabla = asignacionService.obtenerTablaOferta(oferta.getId());
+    
+            // Admitidos provisionalmente: dentro de plazas y sin plaza en preferencia superior
+            List<Map<String, Object>> admitidos = tabla.stream()
+                .limit(oferta.getTotalPlazas())
+                .filter(f -> !(boolean) f.get("tienePlazaSuperior"))
+                .collect(java.util.stream.Collectors.toList());
+    
+            long numAdmitidos = admitidos.size();
+    
+            double notaCorte = 0.0;
+            if (!admitidos.isEmpty()) {
+                notaCorte = (double) admitidos.get(admitidos.size() - 1).get("notaPonderada");
+                notaCorte = Math.round(notaCorte * 100.0) / 100.0;
+            }
+    
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", oferta.getId());
+            item.put("grado", oferta.getGrado());
+            item.put("rama", oferta.getRama());
+            item.put("totalPlazas", oferta.getTotalPlazas());
+            item.put("numSolicitudes", numAdmitidos);
+            item.put("notaCorteProvisional", notaCorte);
+            panel.add(item);
+        }
+        return panel;
     }
 }

@@ -360,20 +360,20 @@ const handleGuardarBorrador = async () => {
       </header>
 
       <div className={styles.content}>
-        <aside className={styles.sidebar}>
+      <aside className={styles.sidebar}>
+        <div>
           <div className={styles.userBox}>
             <img src={avatar} alt="EduPlazas" className={styles.avatar} />
             <p className={styles.email}>{usuario?.email}</p>
           </div>
-
           <button className={styles.button} onClick={() => navigate('/estudiante/inicio')}>
             Volver
           </button>
-
-          <button className={styles.button} onClick={cerrarSesion}>
-            Log out
-          </button>
-        </aside>
+        </div>
+        <button className={styles.button} onClick={cerrarSesion}>
+          Log out
+        </button>
+      </aside>
 
         <main className={styles.main}>
           <div className={styles.card}>
@@ -390,25 +390,53 @@ const handleGuardarBorrador = async () => {
 
             <div className={styles.formulario}>
 
-              {/* Sección 1: Notas de bachillerato */}
+              {/* Sección 1a: Nota de bachillerato */}
               <div className={styles.seccion}>
-                <h3 className={styles.seccionTitulo}>Notas de bachillerato</h3>
+                <h3 className={styles.seccionTitulo}>Nota de bachillerato</h3>
                 <div className={styles.notasGrid}>
-                  {notas.map((nota, index) => (
-                    <div key={index} className={styles.campoNota}>
-                      <label className={styles.label}>{nota.asignatura}</label>
-                      <input
-                        className={styles.inputNota}
-                        type="number"
-                        min="0"
-                        max="10"
-                        step="0.01"
-                        placeholder="0 – 10"
-                        value={nota.nota}
-                        onChange={(e) => handleNotaChange(index, e.target.value)}
-                      />
-                    </div>
-                  ))}
+                  {notas.filter(n => n.asignatura === 'Bachillerato').map((nota, _) => {
+                    const index = notas.indexOf(nota)
+                    return (
+                      <div key={index} className={styles.campoNota}>
+                        <label className={styles.label}>{nota.asignatura}</label>
+                        <input
+                          className={styles.inputNota}
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.01"
+                          placeholder="0 – 10"
+                          value={nota.nota}
+                          onChange={(e) => handleNotaChange(index, e.target.value)}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Sección 1b: Notas EvAU */}
+              <div className={styles.seccion}>
+                <h3 className={styles.seccionTitulo}>Notasde la EvAU</h3>
+                <div className={styles.notasGrid}>
+                  {notas.filter(n => n.asignatura !== 'Bachillerato').map((nota, _) => {
+                    const index = notas.indexOf(nota)
+                    return (
+                      <div key={index} className={styles.campoNota}>
+                        <label className={styles.label}>{nota.asignatura}</label>
+                        <input
+                          className={styles.inputNota}
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="0.01"
+                          placeholder="0 – 10"
+                          value={nota.nota}
+                          onChange={(e) => handleNotaChange(index, e.target.value)}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
 

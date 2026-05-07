@@ -30,18 +30,39 @@
 
 
 .content {
-  display: flex;
   flex: 1;
+  display: flex;
+  align-items: flex-start;
+  overflow: hidden;
 }
-
 
 .sidebar {
   width: 260px;
   background-color: #3552a5;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
-  padding: 40px 20px;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 80px);
+  box-sizing: border-box;
+  flex-shrink: 0;
   color: white;
+}
+
+.navLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 24px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
 }
 
 .uLogoSection {
@@ -60,13 +81,6 @@
   line-height: 1.4;
 }
 
-.navLinks {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 24px;
-}
-
 .sidebarButton {
   background-color: #d9d9d9;
   color: #3552a5;
@@ -81,11 +95,11 @@
 }
 
 .sidebarButton:hover {
-  background-color: #c7c7c7;
+  background-color: #eaf0ff;
 }
 
 .logoutBtn {
-  background-color: #d9d9d9;
+  background-color: #b3c4f1;
   color: #3552a5;
   border: none;
   padding: 14px;
@@ -101,11 +115,23 @@
 
 .userBox {
   margin-bottom: 30px;
+  text-align: center;
+}
+
+.institutionIcon {
+  width: 60px;
+  height: 60px;
+  fill: #ffffff;
+  margin-bottom: 12px;
 }
 
 .email {
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1.3;
   color: white;
+  word-break: break-word;
+  text-align: center;
   margin: 0 0 4px 0;
 }
 
@@ -115,15 +141,8 @@
   margin: 0;
 }
 
-.menu {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 24px;
-}
-
 .button {
-  background-color: #d9d9d9;
+  background-color: #ffffff;
   color: #3552a5;
   border: none;
   padding: 14px;
@@ -136,7 +155,7 @@
 }
 
 .button:hover {
-  background-color: #c0c0c0;
+  background-color: #eaf0ff;
 }
 
 .buttonAccion {
@@ -151,7 +170,7 @@
 }
 
 .buttonAccion:hover {
-  background-color: #2a3f8a;
+  background-color: #4a67c2;
 }
 
 .card {

@@ -30,6 +30,8 @@
 .content {
   flex: 1;
   display: flex;
+  align-items: flex-start;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -39,6 +41,11 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 100px);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .userBox {
@@ -48,10 +55,11 @@
 
 .avatar {
   margin-bottom: 10px;
+  filter: brightness(0) saturate(100%) invert(26%) sepia(28%) saturate(1406%) hue-rotate(196deg) brightness(94%) contrast(92%);
 }
 
 .email {
-  color: white;
+  color: #2a3f8f;
   font-weight: bold;
 }
 
@@ -120,6 +128,19 @@
   padding: 14px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.button:hover {
+  background-color: #4a67c2;
+}
+
+.sidebar > .button {
+  background-color: #6f87d8;
+  color: #ffffff;
+}
+
+.sidebar > .button:hover {
+  background-color: #86a0eb;
 }
 
 

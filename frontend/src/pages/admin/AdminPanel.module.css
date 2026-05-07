@@ -33,18 +33,22 @@
 .content {
   flex: 1;
   display: flex;
+  align-items: flex-start;
+  overflow: hidden;
 }
 
 .sidebar {
-  width: 260px;
-  min-width: 260px;
-  max-width: 260px;
-  flex-shrink: 0;
+  width: 240px;
   background-color: #3552a5;
-  padding: 40px 20px;
+  padding: 30px 20px;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 80px);
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 80px);
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .userBox {
@@ -105,7 +109,9 @@
 .main {
   flex: 1;
   padding: 40px;
-  background-color: #f0f2f5; /* Fondo suave */
+  overflow-y: auto;
+  height: calc(100vh - Xpx); /* 100px estudiantes, 80px universidades */
+  box-sizing: border-box;
 }
 
 .card {
