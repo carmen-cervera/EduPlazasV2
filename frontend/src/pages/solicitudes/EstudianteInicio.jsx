@@ -33,6 +33,7 @@ function EstudianteInicio() {
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
+    localStorage.removeItem('token')
     navigate('/')
   }
 

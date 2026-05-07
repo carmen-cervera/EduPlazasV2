@@ -32,7 +32,10 @@ public class AsignacionService {
     @Transactional
     public void procesarAsignaciones(Long convocatoriaId) {
 
-        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
+        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId)
+            .stream()
+            .filter(s -> s.getEstado() == EstadoSolicitudEnum.ENTREGADA)
+            .collect(Collectors.toList());
         List<Oferta> ofertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
 
         // Calcular notas ponderadas: estudianteId -> ofertaId -> nota

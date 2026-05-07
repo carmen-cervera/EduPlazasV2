@@ -45,7 +45,7 @@ function AdminPanel() {
     }
   }
 
-  const cerrarSesion = () => { localStorage.removeItem('usuario'); navigate('/') }
+  const cerrarSesion = () => { localStorage.removeItem('usuario'); localStorage.removeItem('token'); navigate('/') }
 
   const estadoBadge = (estado) => {
     const colores = { PENDIENTE: '#f59e0b', ABIERTA: '#22c55e', CERRADA: '#6b7280' }

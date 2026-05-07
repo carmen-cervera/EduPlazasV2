@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/convocatorias")
-@CrossOrigin(origins = "http://localhost:5173")
 public class ConvocatoriaController {
 
     private final ConvocatoriaService convocatoriaService;

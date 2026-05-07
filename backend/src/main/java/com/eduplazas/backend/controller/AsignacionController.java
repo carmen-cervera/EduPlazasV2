@@ -10,7 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/asignaciones")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AsignacionController {
 
     private final AsignacionService asignacionService;

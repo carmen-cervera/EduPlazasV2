@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/solicitudes")
-@CrossOrigin(origins = "http://localhost:5173")
 public class SolicitudController {
 
     private final SolicitudService solicitudService;

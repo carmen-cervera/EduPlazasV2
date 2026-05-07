@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from './axiosAuth'
 
 const BASE_URL = 'http://localhost:8080/admin/convocatorias'
 

@@ -87,6 +87,7 @@ function PublicarOferta() {
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
+    localStorage.removeItem('token')
     navigate('/')
   }
 

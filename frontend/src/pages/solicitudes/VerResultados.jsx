@@ -32,6 +32,7 @@ function VerResultados() {
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
+localStorage.removeItem('token')
     navigate('/')
   }
 

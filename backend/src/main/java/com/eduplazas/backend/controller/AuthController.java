@@ -5,13 +5,11 @@ import com.eduplazas.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final AuthService authService;
@@ -62,34 +60,17 @@ public class AuthController {
         }
     }
 
-    // Login
+    // Login — devuelve datos del usuario + token JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
         try {
-            Usuario usuario = authService.login(body.get("email"), body.get("password"));
-            if (usuario == null) {
+            Map<String, Object> respuesta = authService.loginConToken(
+                body.get("email"),
+                body.get("password")
+            );
+            if (respuesta == null) {
                 return ResponseEntity.badRequest().body("Email o contraseña incorrectos");
             }
-
-            Map<String, Object> respuesta = new HashMap<>();
-            respuesta.put("id", usuario.getId());
-            respuesta.put("email", usuario.getEmail());
-            respuesta.put("nombre", usuario.getNombre());
-
-            if (usuario instanceof Estudiante) {
-                respuesta.put("rol", "ESTUDIANTE");
-            } else if (usuario instanceof RepresentanteUniversidad r) {
-                respuesta.put("rol", "UNIVERSIDAD");
-                if (r.getUniversidad() != null) {
-                    respuesta.put("universidad", Map.of(
-                        "id", r.getUniversidad().getId(),
-                        "nombre", r.getUniversidad().getNombre()
-                    ));
-                }
-            } else if (usuario instanceof Admin) {
-                respuesta.put("rol", "ADMIN");
-            }
-
             return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error interno del servidor");

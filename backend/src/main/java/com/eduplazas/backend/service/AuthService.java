@@ -1,5 +1,6 @@
 package com.eduplazas.backend.service;
 
+import com.eduplazas.backend.config.JwtUtil;
 import com.eduplazas.backend.model.*;
 import com.eduplazas.backend.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,8 +10,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -21,15 +23,18 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtUtil jwtUtil;
 
     public AuthService(EstudianteRepository estudianteRepository,
                        RepresentanteUniversidadRepository representanteRepository,
                        UniversidadRepository universidadRepository,
-                       UsuarioRepository usuarioRepository) {
+                       UsuarioRepository usuarioRepository,
+                       JwtUtil jwtUtil) {
         this.estudianteRepository = estudianteRepository;
         this.representanteRepository = representanteRepository;
         this.universidadRepository = universidadRepository;
         this.usuarioRepository = usuarioRepository;
+        this.jwtUtil = jwtUtil;
     }
 
     // REGISTRO ESTUDIANTE
@@ -86,7 +91,7 @@ public class AuthService {
         RepresentanteUniversidad representante = new RepresentanteUniversidad();
         representante.setNombre(nombre);
         representante.setApellidos(apellidos);
-        representante.setEmail(emailInstitucional); // email común para login
+        representante.setEmail(emailInstitucional);
         representante.setEmailInstitucional(emailInstitucional);
         representante.setPassword(passwordEncoder.encode(password));
         representante.setDni(dni);
@@ -96,12 +101,40 @@ public class AuthService {
         return "OK";
     }
 
-    // LOGIN — busca por email en todos los tipos de usuario
-    public Usuario login(String email, String password) {
+    // LOGIN — devuelve usuario + token JWT
+    public Map<String, Object> loginConToken(String email, String password) {
         Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
         if (usuario == null) return null;
         if (!passwordEncoder.matches(password, usuario.getPassword())) return null;
-        return usuario;
+
+        String rol;
+        if (usuario instanceof Estudiante) {
+            rol = "ESTUDIANTE";
+        } else if (usuario instanceof RepresentanteUniversidad) {
+            rol = "UNIVERSIDAD";
+        } else if (usuario instanceof Admin) {
+            rol = "ADMIN";
+        } else {
+            rol = "UNKNOWN";
+        }
+
+        String token = jwtUtil.generarToken(email, rol);
+
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("token", token);
+        respuesta.put("id", usuario.getId());
+        respuesta.put("email", usuario.getEmail());
+        respuesta.put("nombre", usuario.getNombre());
+        respuesta.put("rol", rol);
+
+        if (usuario instanceof RepresentanteUniversidad r && r.getUniversidad() != null) {
+            respuesta.put("universidad", Map.of(
+                "id", r.getUniversidad().getId(),
+                "nombre", r.getUniversidad().getNombre()
+            ));
+        }
+
+        return respuesta;
     }
 
     // Validar ID EvAU contra el archivo JSON

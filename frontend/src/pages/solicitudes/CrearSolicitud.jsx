@@ -261,6 +261,7 @@ const handleGuardarBorrador = async () => {
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
+    localStorage.removeItem('token')
     navigate('/')
   }
 

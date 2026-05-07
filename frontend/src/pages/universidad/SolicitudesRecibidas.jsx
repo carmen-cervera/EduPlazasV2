@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './SolicitudesRecibidas.module.css'
 import logo from '../../assets/LogoPequeño_FondoBlanco_SinGorro.png'
+import axiosAuth from '../../services/axiosAuth'
 
 function SolicitudesRecibidas() {
   const navigate = useNavigate()
@@ -11,15 +12,15 @@ function SolicitudesRecibidas() {
 
   useEffect(() => {
     if (usuario?.id) {
-      fetch(`http://localhost:8080/ofertas/panel-universidad?representanteId=${usuario.id}`)
-        .then(res => res.json())
-        .then(data => Array.isArray(data) ? setPanel(data) : setError('Error al cargar el panel'))
+      axiosAuth.get(`/ofertas/panel-universidad?representanteId=${usuario.id}`)
+        .then(res => Array.isArray(res.data) ? setPanel(res.data) : setError('Error al cargar el panel'))
         .catch(() => setError('Error de conexión'))
     }
   }, [])
 
   const cerrarSesion = () => {
     localStorage.removeItem('usuario')
+    localStorage.removeItem('token')
     navigate('/')
   }
 
@@ -129,7 +130,7 @@ function SolicitudesRecibidas() {
                         <span className={styles.metricaNum}>
                           {oferta.notaCorteProvisional > 0 ? oferta.notaCorteProvisional : '—'}
                         </span>
-                        <span className={styles.metricaLabel}>Nota de corte<br />  provisional</span>
+                        <span className={styles.metricaLabel}>Nota de corte<br /> provisional</span>
                       </div>
                     </div>
 
