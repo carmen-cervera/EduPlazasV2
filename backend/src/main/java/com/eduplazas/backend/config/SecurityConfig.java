@@ -32,6 +32,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/solicitudes/convocatoria-abierta").permitAll()
+                .requestMatchers("/solicitudes/ofertas").permitAll()
+                .requestMatchers("/ofertas").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/ofertas/**").hasAnyRole("UNIVERSIDAD", "ADMIN")
                 .requestMatchers("/solicitudes/**").hasAnyRole("ESTUDIANTE", "ADMIN")
