@@ -8,5 +8,6 @@ public interface PreferenciaRepository extends CrudRepository<Preferencia, Long>
     List<Preferencia> findBySolicitudIdOrderByOrdenPreferencia(Long solicitudId);
     List<Preferencia> findByOfertaId(Long ofertaId);
     void deleteBySolicitudId(Long solicitudId);
+    long countByOfertaId(Long ofertaId);
 
 }
