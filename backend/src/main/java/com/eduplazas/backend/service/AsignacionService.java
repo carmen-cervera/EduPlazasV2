@@ -188,7 +188,10 @@ public class AsignacionService {
 
         Long convocatoriaId = oferta.getConvocatoria().getId();
         List<Oferta> todasOfertas = ofertaRepository.findByConvocatoriaId(convocatoriaId);
-        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId);
+        List<Solicitud> solicitudes = solicitudRepository.findByConvocatoriaId(convocatoriaId)
+                .stream()
+                .filter(s -> s.getEstado() == EstadoSolicitudEnum.ENTREGADA)
+                .collect(Collectors.toList());
 
         List<Solicitud> candidatos = solicitudes.stream()
             .filter(s -> s.getPreferencias().stream()

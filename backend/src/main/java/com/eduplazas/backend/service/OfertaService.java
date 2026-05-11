@@ -131,6 +131,7 @@ public class OfertaService {
         item.put("totalPlazas", oferta.getTotalPlazas());
         item.put("numSolicitudes", numAdmitidos);
         item.put("notaCorteProvisional", notaCorte);
+        panel.add(item);
         }
         return panel;
     }
