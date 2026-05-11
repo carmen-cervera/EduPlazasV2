@@ -111,26 +111,26 @@ public class OfertaService {
         for (Oferta oferta : ofertas) {
             List<Map<String, Object>> tabla = asignacionService.obtenerTablaOferta(oferta.getId());
     
-            long numSolicitudes = preferenciaRepository.countByOfertaId(oferta.getId());
-
             List<Map<String, Object>> admitidos = tabla.stream()
-                .limit(oferta.getTotalPlazas())
-                .filter(f -> !(boolean) f.get("tienePlazaSuperior"))
-                .collect(java.util.stream.Collectors.toList());
-            
-            double notaCorte = 0.0;
-            if (!admitidos.isEmpty()) {
-                notaCorte = (double) admitidos.get(admitidos.size() - 1).get("notaPonderada");
-                notaCorte = Math.round(notaCorte * 100.0) / 100.0;
-            }
-            
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id", oferta.getId());
-            item.put("grado", oferta.getGrado());
-            item.put("rama", oferta.getRama());
-            item.put("totalPlazas", oferta.getTotalPlazas());
-            item.put("numSolicitudes", numSolicitudes);
-            item.put("notaCorteProvisional", notaCorte);
+            .limit(oferta.getTotalPlazas())
+            .filter(f -> !(boolean) f.get("tienePlazaSuperior"))
+            .collect(java.util.stream.Collectors.toList());
+        
+        long numAdmitidos = admitidos.size();
+        
+        double notaCorte = 0.0;
+        if (!admitidos.isEmpty()) {
+            notaCorte = (double) admitidos.get(admitidos.size() - 1).get("notaPonderada");
+            notaCorte = Math.round(notaCorte * 100.0) / 100.0;
+        }
+        
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", oferta.getId());
+        item.put("grado", oferta.getGrado());
+        item.put("rama", oferta.getRama());
+        item.put("totalPlazas", oferta.getTotalPlazas());
+        item.put("numSolicitudes", numAdmitidos);
+        item.put("notaCorteProvisional", notaCorte);
         }
         return panel;
     }
